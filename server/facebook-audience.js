@@ -188,17 +188,17 @@ export default class FacebookAudience {
     }
   }
 
-  deleteAudience(segment) {
-  }
-
   fb(path, params={}, method='get') {
     fbgraph.setVersion('2.5');
     const { accessToken, accountId } = this.getCredentials();
-    if (accountId && accessToken) {
+    if (accessToken) {
       return new Promise((resolve, reject) => {
         let fullpath = path;
 
         if (path.match(/^customaudiences/)) {
+          if (!accountId) {
+            return Promise.reject(new Error('Missing AccountId'));
+          }
           fullpath = `act_${accountId}/${path}`
         }
 
@@ -210,6 +210,19 @@ export default class FacebookAudience {
     } else {
       return Promise.reject(new Error('Missing Credentials'));
     }
+  }
+
+  fetchAvailableAccounts() {
+    return this.fb('me/adaccounts', {
+      fields: [
+        'id',
+        'account_id',
+        'name',
+        'account_status',
+        'owner',
+        'user_role'
+      ].join(',')
+    });
   }
 
   fetchAudiences() {

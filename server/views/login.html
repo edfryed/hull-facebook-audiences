@@ -1,0 +1,53 @@
+<html>
+  <head>
+    <title>Login - Hull Facebook Audiences</title>
+    <link rel="stylesheet" href="//dd04rofzygnm0.cloudfront.net/releases/master/865f04865d2448286626bac92c518a8f8ea8bafe/stylesheets/neue.css" />
+  </head>
+  <body>
+    <button id='login' class='btn btn-primary'>Login with Facebook</button>
+    <script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId      : '<%= facebookAppId %>',
+          xfbml      : true,
+          version    : 'v2.5'
+        });
+
+        var btn = document.querySelector('#login');
+        btn.addEventListener('click', function() {
+          FB.login(function(response) {
+            if (response && response.status === 'connected') {
+              var auth = response.authResponse || { grantedScopes: '' };
+              var scopes = auth.grantedScopes.split(',');
+              var accessToken = auth.accessToken;
+              if (scopes.indexOf('ads_management') > -1 && scopes.indexOf('ads_read') > -1) {
+                console.warn('youpi yah !', accessToken);
+                var input = document.getElementById('facebook_access_token');
+                input.setAttribute('value', accessToken);
+                var form = document.getElementById('login-form');
+                form.submit();
+              } else {
+                console.warn('bbooooo')
+              }
+            }
+            console.warn('Et mes acclamations? ', response);
+          }, { scope: 'ads_read,ads_management', return_scopes: true })
+        });
+      };
+
+      (function(d, s, id){
+         var js, fjs = d.getElementsByTagName(s)[0];
+         if (d.getElementById(id)) {return;}
+         js = d.createElement(s); js.id = id;
+         js.src = "//connect.facebook.net/en_US/sdk.js";
+         fjs.parentNode.insertBefore(js, fjs);
+       }(document, 'script', 'facebook-jssdk'));
+    </script>
+
+    <form method="post" id="login-form">
+      <input type="hidden" name="extendAccessToken" value="true" />
+      <input type="hidden" name="facebook_access_token" value="" id="facebook_access_token" />
+    </form>
+
+  </body>
+</html>

@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <title>Hull Facebook Audiences</title>
+    <link rel="stylesheet" href="//dd04rofzygnm0.cloudfront.net/releases/master/865f04865d2448286626bac92c518a8f8ea8bafe/stylesheets/neue.css" />
+  </head>
+  <body class='container'>
+    <h2>Managed Audiences</h2>
+    <table class='table table-striped'>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Approximate Count</th>
+          <th>Last updated At</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% (audiences || []).map((audience) => {  -%>
+        <tr>
+          <td><%= audience.name %></td>
+          <td><%= audience.operation_status.description %></td>
+          <td><%= audience.approximate_count%></td>
+          <td><%= new Date(audience.time_content_updated * 1000) %></td>
+        </tr>
+        <% }) -%>
+      </tbody>
+    </table>
+  </body>
+</html>

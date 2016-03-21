@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <title>Hull Facebook Audiences</title>
+    <link rel="stylesheet" href="//dd04rofzygnm0.cloudfront.net/releases/master/865f04865d2448286626bac92c518a8f8ea8bafe/stylesheets/neue.css" />
+  </head>
+  <body class='container'>
+    <h2>Select an account</h2>
+    <table class='table table-striped'>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Status</th>
+          <th>&nbsp;</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% (accounts || []).map((account) => {  -%>
+        <tr>
+          <td><%= account.account_id %></td>
+          <td><%= account.name %></td>
+          <td><%= account.account_status %></td>
+          <td>
+            <form action="<%= url %>" method="post">
+              <input type="hidden" name="facebook_access_token" value="<%= fb.getAccessToken() %>" />
+              <input type="hidden" name="facebook_ad_account_id" value="<%= account.account_id %>" />
+              <input type="submit" value="Select" class='btn btn-primary' />
+            </form>
+          </td>
+        </tr>
+        <% }) -%>
+      </tbody>
+    </table>
+  </body>
+</html>
