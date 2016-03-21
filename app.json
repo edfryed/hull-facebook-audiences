@@ -1,0 +1,14 @@
+{
+  "name": "Hull Facebook Audiences",
+  "description": "Sync Hull Segments with Facebook Custom Audiences",
+  "repository": "https://github.com/hull-ships/hull-facebook-audiences",
+  "website": "http://www.hull.io",
+  "success_url": "/readme",
+  "env": {
+    "SECRET" : {
+      "description" : "A Secret key used to authenticate on Hull API",
+      "generator" : "secret"
+    }
+  },
+  "scripts": {}
+}
