@@ -42,6 +42,19 @@ export default class FacebookAudience {
     }
   }
 
+  static sync(req) {
+    const { ship, client } = req.hull;
+    const fb = new FacebookAudience(ship, client, req);
+    console.warn('Starting sync on all segments...');
+    fb.hull.get('segments', { limit: 500 }).then((segments = []) => {
+      console.warn('Got ', segments.length, ' to sync');
+      segments.map(segment => {
+        console.warn('sync segment ', segment.id, segment.name);
+        return fb.getOrCreateAudienceForSegment(segment);
+      });
+    });
+  }
+
   constructor(ship, hull, req) {
     this.ship = ship;
     this.hull = hull;
@@ -241,11 +254,4 @@ export default class FacebookAudience {
     });
   }
 
-  syncAudiences({ message }, { hull, ship }) {
-    this.hull.get('segments', { limit: 500 }).then(segments => {
-      segments.map(segment => {
-        this.updateAudience({ message: { segment } }, { hull, ship })
-      })
-    });
-  }
 }

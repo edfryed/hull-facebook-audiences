@@ -14,7 +14,7 @@ const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID || '1104279809616629';
 const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 
 const notifHandler = NotifHandler({
-  onSubscribe: FacebookAudience.handle('syncAllAudiences'),
+  onSubscribe: FacebookAudience.sync,
   events: {
     'users_segment:update': FacebookAudience.handle('handleSegmentUpdate'),
     'users_segment:delete': FacebookAudience.handle('handleSegmentDelete'),
@@ -72,7 +72,7 @@ module.exports = function(port) {
           client_id: FACEBOOK_APP_ID,
           client_secret: FACEBOOK_APP_SECRET
         }, (err, res) => {
-           err ? reject(err) : resolve(res.access_token)
+           err ? reject(err) : resolve(res.access_token);
         });
       } else {
         resolve(facebook_access_token);
