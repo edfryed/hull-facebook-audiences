@@ -38,20 +38,25 @@ export default class FacebookAudience {
   static handle(method) {
     return ({ message }, { hull, ship, req }) => {
       const handler = new FacebookAudience(ship, hull, req);
+      if (!handler.isConfigured()) {
+        const error = new Error("Missing credentials");
+        error.status = 403;
+        return Promise.reject(error);
+      }
       return handler[method](message);
     }
   }
 
-  static sync(req) {
-    const { ship, client } = req.hull;
-    const fb = new FacebookAudience(ship, client, req);
-    console.warn('Starting sync on all segments...');
-    fb.hull.get('segments', { limit: 500 }).then((segments = []) => {
-      console.warn('Got ', segments.length, ' to sync');
-      segments.map(segment => {
-        console.warn('sync segment ', segment.id, segment.name);
-        return fb.getOrCreateAudienceForSegment(segment);
-      });
+  sync() {
+    return Promise.all([
+      this.fetchAudiences(),
+      this.hull.get('segments', { limit: 500 })
+    ]).then((ab) => {
+      const audiences = ab[0];
+      const segments = ab[1];
+      return Promise.all(segments.map( segment => {
+        return audiences[segment.id] || this.createAudience(segment);
+      }));
     });
   }
 
@@ -78,6 +83,11 @@ export default class FacebookAudience {
       accessToken: this.getAccessToken(),
       accountId: this.getAccountId()
     };
+  }
+
+  isConfigured() {
+    const { accessToken, accountId } = this.getCredentials();
+    return !!(accessToken && accountId);
   }
 
   createAudience(segment, extract=true) {

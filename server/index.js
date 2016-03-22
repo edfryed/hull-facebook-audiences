@@ -14,7 +14,6 @@ const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID || '1104279809616629';
 const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 
 const notifHandler = NotifHandler({
-  onSubscribe: FacebookAudience.sync,
   events: {
     'users_segment:update': FacebookAudience.handle('handleSegmentUpdate'),
     'users_segment:delete': FacebookAudience.handle('handleSegmentDelete'),
@@ -82,7 +81,19 @@ module.exports = function(port) {
     getAccessToken.then((facebook_access_token) => {
       const private_settings = Object.assign({}, ship.private_settings || {}, { facebook_access_token, facebook_ad_account_id });
       client.put(ship.id, { private_settings }).then(ship => {
-        res.redirect(req.url);
+        try {
+          if ( facebook_access_token && facebook_ad_account_id) {
+            const fb = new FacebookAudience(ship, client, req);
+            fb.sync().then(
+              done => res.redirect(req.url),
+              err => res.render('error.html', { err: err })
+            );
+          } else {
+            res.redirect(req.url);
+          }
+        } catch(err) {
+          res.render('error.html', { err: err })
+        }
       }, (err) => {
         res.render('error.html', { err: err });
       });
@@ -90,6 +101,7 @@ module.exports = function(port) {
       res.render('error.html', { err: err });
     })
   });
+
 
   app.get('/admin.html', bodyParser.json(), fetchShip, (req, res) => {
     const { ship, client } = req.hull || {};
