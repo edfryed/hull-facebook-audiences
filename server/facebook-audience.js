@@ -78,6 +78,10 @@ export default class FacebookAudience {
     }
   }
 
+  getManagerUrl(audience) {
+    return `https://www.facebook.com/ads/manager/audiences/detail/?act=${this.getAccountId()}&pid=p3&ids=${audience.id}`;
+  }
+
   getCredentials() {
     return {
       accessToken: this.getAccessToken(),

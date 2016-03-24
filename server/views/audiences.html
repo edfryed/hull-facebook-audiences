@@ -17,9 +17,13 @@
       <tbody>
         <% (audiences || []).map((audience) => {  -%>
         <tr>
-          <td><%= audience.name %></td>
+          <td>
+            <a href="<%- fb.getManagerUrl(audience) %>" target='fb_ads_manager'>
+              <%= audience.name %>
+            </a>
+          </td>
           <td><%= audience.operation_status.description %></td>
-          <td><%= audience.approximate_count%></td>
+          <td><%= audience.approximate_count %></td>
           <td><%= new Date(audience.time_content_updated * 1000) %></td>
         </tr>
         <% }) -%>
