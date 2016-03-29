@@ -4,42 +4,61 @@
     <link rel="stylesheet" href="//dd04rofzygnm0.cloudfront.net/releases/master/865f04865d2448286626bac92c518a8f8ea8bafe/stylesheets/neue.css" />
   </head>
   <body class='container'>
-    <h4>Managed Audiences</h4>
-    <table class='table table-striped table-condensed'>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Status</th>
-          <th>Approximate Count</th>
-          <th>Last updated At</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% (audiences || []).map((audience) => {  -%>
-        <tr>
-          <td  style='vertical-align: middle;'>
-            <a href="<%- fb.getManagerUrl(audience) %>" target='fb_ads_manager'>
-              <%= audience.name %>
-            </a>
-          </td>
-          <td  style='vertical-align: middle;'>
-            <small class="text-muted">
-              <%= audience.operation_status.description %>
-            </small>
-          </td>
-          <td  style='vertical-align: middle;'>
-            <small class="text-muted">
-              <%= audience.approximate_count %>
-            </small>
-          </td>
-          <td  style='vertical-align: middle;'>
-            <small class="text-muted">
-              <%= new Date(audience.time_content_updated * 1000) %>
-            </small>
-          </td>
-        </tr>
-        <% }) -%>
-      </tbody>
-    </table>
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="panel panel-default mt-1">
+          <% if (audiences && audiences.length) { -%>
+            <div class="panel-heading">
+              <h5 class='mt-05 mb-05 text-accented uppercase'>Managed Audiences</h5>
+            </div>
+            <table class='table table-condensed datagrid-table table table-bordered table-hover'>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Approximate Count</th>
+                  <th>Last updated At</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% audiences.map((audience) => {  -%>
+                <tr>
+                  <td  style='vertical-align: middle;'>
+                    <a href="<%- fb.getManagerUrl(audience) %>" target='fb_ads_manager'>
+                      <%= audience.name %>
+                    </a>
+                  </td>
+                  <td  style='vertical-align: middle;'>
+                    <small class="text-muted">
+                      <%= audience.operation_status.description %>
+                    </small>
+                  </td>
+                  <td  style='vertical-align: middle;'>
+                    <small class="text-muted">
+                      <%= audience.approximate_count %>
+                    </small>
+                  </td>
+                  <td  style='vertical-align: middle;'>
+                    <small class="text-muted">
+                      <%= new Date(audience.time_content_updated * 1000) %>
+                    </small>
+                  </td>
+                </tr>
+                <% }) -%>
+              </tbody>
+            </table>
+            <% } else { -%>
+              <div class="panel-body text-center">
+                <h1 class="condensed mt-0 mb-0">No audiences found</h1>
+                <p>Create some segments!</p>
+                <div class="mt-2">
+                  <div class="mb-2 col-md-2 col-md-offset-5">
+                    <img src="https://dd04rofzygnm0.cloudfront.net/releases/master/865f04865d2448286626bac92c518a8f8ea8bafe/images/blankslate/avatar.svg" class="img-responsive"></div>
+                </div>
+              </div>
+            <% } -%>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

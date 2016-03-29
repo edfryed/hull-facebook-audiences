@@ -146,7 +146,7 @@ module.exports = function(port) {
       }, renderError)
     } else {
       fb.fetchAudiences().then((audiences) => {
-        res.render('audiences.html', { audiences: _.values(audiences), fb })
+        res.render('audiences.html', { audiences: _.values(audiences) || [], fb })
       }, (err) => {
         res.render('error.html', { err: err, fb });
       })
