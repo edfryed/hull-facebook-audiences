@@ -8,7 +8,7 @@ import crypto from 'crypto';
 import request from 'request';
 const fbgraph = require('fbgraph');
 
-const BASE_URL = process.env.BASE_URL || 'https://hull-computed-traits.ngrok.io';
+const BASE_URL = process.env.BASE_URL || 'https://hull-facebook-audiences.herokuapp.com';
 
 const AUDIENCE_FIELDS = [
   'account_id',
