@@ -239,6 +239,13 @@ export default class FacebookAudience {
     }
   }
 
+  fetchPixels(accountId) {
+    return this.fb('act_'+accountId+'/adspixels', {fields: 'name'});
+  }
+  fetchImages(accountId) {
+    return this.fb('act_'+accountId+'/adimages', {fields: 'url_128'});
+  }
+
   fetchAvailableAccounts() {
     return this.fb('me/adaccounts', {
       fields: [
@@ -247,6 +254,9 @@ export default class FacebookAudience {
         'name',
         'account_status',
         'owner',
+        'owner_business',
+        'capabilities',
+        'business',
         'user_role'
       ].join(',')
     });
