@@ -1,6 +1,7 @@
 {
   "name": "Facebook Audiences",
-  "description": "Sync Hull Segments with Facebook custom audiences",
+  "description": "Send Hull Segments to Facebook Custom audiences",
+  "tags": ["outgoing"],
   "picture": "picture.png",
   "ui": false,
   "admin" : "admin.html",
