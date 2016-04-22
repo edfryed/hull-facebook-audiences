@@ -1,7 +1,7 @@
 {
   "name": "Facebook Audiences",
   "description": "Send Hull Segments to Facebook Custom audiences",
-  "tags": ["outgoing"],
+  "tags": ["outgoing", "batch"],
   "picture": "picture.png",
   "ui": false,
   "admin" : "admin.html",
