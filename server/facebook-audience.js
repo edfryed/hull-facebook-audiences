@@ -6,9 +6,22 @@ import JSONStream from 'JSONStream';
 import EventStream from 'event-stream';
 import crypto from 'crypto';
 import request from 'request';
-const fbgraph = require('fbgraph');
+import fbgraph from 'fbgraph';
+import CAPABILITIES from './capabilities';
 
 const BASE_URL = process.env.BASE_URL || 'https://hull-facebook-audiences.herokuapp.com';
+
+const ACCOUNT_FIELDS = [
+  'id',
+  'account_id',
+  'name',
+  'account_status',
+  'owner',
+  'owner_business',
+  'capabilities',
+  'business',
+  'user_role'
+];
 
 const AUDIENCE_FIELDS = [
   'account_id',
@@ -47,13 +60,15 @@ export default class FacebookAudience {
     }
   }
 
+  static sync(ship, hull, req) {
+    return new FacebookAudience(ship, hull, req).sync();
+  }
+
   sync() {
     return Promise.all([
       this.fetchAudiences(),
       this.hull.get('segments', { limit: 500 })
-    ]).then((ab) => {
-      const audiences = ab[0];
-      const segments = ab[1];
+    ]).then(([ audiences, segments ]) => {
       return Promise.all(segments.map( segment => {
         return audiences[segment.id] || this.createAudience(segment);
       }));
@@ -163,7 +178,7 @@ export default class FacebookAudience {
     return this.hull.get(segment.id).then(({ query }) => {
       return this.hull.post('extract/user_reports', {
         format: format || 'csv',
-        fields: ['id', 'email', 'contact_email', 'name'],
+        fields: ['id', 'email', 'name'],
         query: query,
         url: callbackUrl
       });
@@ -179,8 +194,7 @@ export default class FacebookAudience {
   }
 
   updateAudienceUsers(audienceId, users, method) {
-    const data = _.compact((users || []).map((user) => {
-      const email = user.contact_email || user.email;
+    const data = _.compact((users || []).map(({ email }) => {
       if (email) {
         return crypto.createHash('sha256')
                       .update(email)
@@ -194,27 +208,6 @@ export default class FacebookAudience {
     }
   }
 
-  handleExtract({ url, format }, callback) {
-    if (url && format) {
-      const users = [];
-      const decoder = format == 'csv' ? CSVStream.createStream() : JSONStream.parse();
-
-      const flush = (user) => {
-        if (user) {
-          users.push(user);
-        }
-        if (users.length >= 100 || !user) {
-          callback(users.splice(0))
-        }
-      }
-
-      return request({ url })
-        .pipe(decoder)
-        .on('data', flush)
-        .on('end', flush);
-    }
-  }
-
   fb(path, params={}, method='get') {
     fbgraph.setVersion('2.5');
     const { accessToken, accountId } = this.getCredentials();
@@ -224,42 +217,52 @@ export default class FacebookAudience {
 
         if (path.match(/^customaudiences/)) {
           if (!accountId) {
-            return Promise.reject(new Error('Missing AccountId'));
+            throw new Error('MissingAccountId');
           }
           fullpath = `act_${accountId}/${path}`
         }
 
         const fullparams = Object.assign({}, params, { access_token: accessToken });
         fbgraph[method](fullpath, fullparams, (err, result) => {
+          if (err) {
+            console.warn("Unauthorized ", JSON.stringify({ fullpath, fullparams }))
+          }
           err ? reject(err) : resolve(result);
         })
       });
     } else {
-      return Promise.reject(new Error('Missing Credentials'));
+      throw new Error('Missing Credentials');
     }
   }
 
   fetchPixels(accountId) {
     return this.fb('act_'+accountId+'/adspixels', {fields: 'name'});
   }
+
   fetchImages(accountId) {
     return this.fb('act_'+accountId+'/adimages', {fields: 'url_128'});
   }
 
-  fetchAvailableAccounts() {
-    return this.fb('me/adaccounts', {
-      fields: [
-        'id',
-        'account_id',
-        'name',
-        'account_status',
-        'owner',
-        'owner_business',
-        'capabilities',
-        'business',
-        'user_role'
-      ].join(',')
-    });
+  fetchAvailableAccounts(params = {}) {
+    const fields = ACCOUNT_FIELDS.join(',')
+    return this.fb('me/adaccounts', { ...params, fields })
+    .then((({ data }) => {
+      const promises = [];
+      data.map((account) => {
+        account.capabilities = _.compact((account.capabilities||[]).map((cap)=> (CAPABILITIES[cap] || false))).join(", ")
+        const pix = this.fetchPixels(account.account_id).then((pixels) => {
+          account.pixels = _.compact((pixels.data || []).map((px)=> px.name)).join(", ");
+          return account;
+        });
+        promises.push(pix);
+        const img = this.fetchImages(account.account_id).then((images)=>{
+          account.images = _.slice((images.data||[]).map((img)=>img.url_128), 0, 4);
+          return account;
+        });
+        promises.push(img);
+      });
+      return Promise.all(promises).then((values)=> data);
+    }));
   }
 
   fetchAudiences() {
