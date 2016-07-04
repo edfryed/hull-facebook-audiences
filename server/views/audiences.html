@@ -53,7 +53,15 @@
                 <p>Create some segments!</p>
                 <div class="mt-2">
                   <div class="mb-2 col-md-2 col-md-offset-5">
-                    <img src="https://dd04rofzygnm0.cloudfront.net/releases/master/865f04865d2448286626bac92c518a8f8ea8bafe/images/blankslate/avatar.svg" class="img-responsive"></div>
+                    <img src="https://dd04rofzygnm0.cloudfront.net/releases/master/865f04865d2448286626bac92c518a8f8ea8bafe/images/blankslate/avatar.svg" class="img-responsive">
+                  </div>
+                </div>
+                <div class="mt-2">
+                  <div class="mb-2 col-md-2 col-md-offset-5">
+                    <form method="post" action="/admin/sync?ship=<%= query.ship %>&organization=<%= query.organization %>&secret=<%= query.secret%>">
+                      <input type="submit" name="action" value="Start sync" class="btn btn-primary">
+                    </form>
+                  </div>
                 </div>
               </div>
             <% } -%>

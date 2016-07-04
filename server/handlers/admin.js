@@ -35,7 +35,6 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
         })
       })
       .then(ship => {
-        console.warn("Staring audience sync...");
         const fb = new FacebookAudience(ship, hull, req);
         if (fb.isConfigured()) {
           return fb.sync(ship, hull, req);
@@ -44,30 +43,21 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
   }
 
   function handleError(context, err) {
-    console.warn("Here is my wonderful error !", {context, err})
-    if (err.type === 'OAuthException') {
+    if (err.type === 'OAuthException' && (err.code === 100 || err.code === 190)) {
       this.render("login.html", context);
     } else {
       this.render("error.html", { ...context, err });
     }
-
   }
 
   const app = Router();
 
   app.use(Hull.Middlewares.hullClient({ cacheShip: false }));
 
-  app.use((req, res, next) => {
-    console.warn("\n\n\n\n\n\n==========================================")
-    next();
-  })
-
   app.post("/", bodyParser.urlencoded({ extended: true }), (req, res) => {
-    console.warn("post /admin")
-    const context = { query: req.query, facebookAppId };
+    const context = { query: req.query, search: req.search, facebookAppId };
     const params = req.body;
     const { client: hull, ship } = req.hull;
-    console.warn("updateSettings...")
     return updateSettings({ hull, ship, params, req })
       .then(
         () => {
@@ -77,32 +67,37 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
       .catch(handleError.bind(res, context))
   });
 
-  app.get("/", (req, res) => {
-    console.warn("get /admin")
+  app.post("/sync", bodyParser.urlencoded({ extended: true }), (req, res) => {
+    const context = { query: req.query, facebookAppId };
+    const params = req.body;
+    const { client: hull, ship } = req.hull;
+    const fb = new FacebookAudience(ship, hull, req);
+    if (fb.isConfigured()) {
+      return fb.sync(ship, hull, req).then(
+        sync => res.redirect('back')
+      ).catch(handleError.bind(res, context));
+    } else {
+      res.redirect('back');
+    }
+  });
 
+  app.get("/", (req, res) => {
     const { ship, client: hull } = req.hull || {};
     const fb = new FacebookAudience(ship, hull, req);
 
     const { accessToken, accountId } = fb.getCredentials();
-    const context = { fb, query: req.query, facebookAppId };
+    const context = { fb, url: req.url, query: req.query, facebookAppId };
 
 
     if (!accessToken) {
-      console.warn("Please log in first...")
       res.render("login.html", context);
     } else if (!accountId) {
-
-      console.warn("Fetching accounts !!!")
 
       fb.fetchAvailableAccounts()
        .then(accounts => res.render("accounts.html", { ...context, accounts }))
        .catch(handleError.bind(res, context))
 
     } else {
-
-
-      console.warn("Fetching audiences: ", { accountId });
-
 
       fb.fetchAudiences()
         .then(audiences => res.render("audiences.html", { ...context, audiences: _.values(audiences) }))
