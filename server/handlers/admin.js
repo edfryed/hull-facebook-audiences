@@ -40,10 +40,19 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
       });
   }
 
-  function handleError(context, err) {
+  function handleError(context, err = {}) {
     if (err.type === "OAuthException" && (err.code === 100 || err.code === 190)) {
       this.render("login.html", context);
     } else {
+      err.title = `Error #${err.code} - ${err.type}`;
+      if (err.code === 2655 || err.code === 2664) {
+        err.title = "Terms of service has not been accepted.";
+        err.action = {
+          message: "Click here to accept them",
+          url: `https://www.facebook.com/ads/manage/customaudiences/tos.php?act=${_.get(context, "ship.private_settings.facebook_ad_account_id")}`
+        };
+      }
+
       this.render("error.html", { ...context, err });
     }
   }
@@ -53,9 +62,9 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
   app.use(Hull.Middlewares.hullClient({ cacheShip: false }));
 
   app.post("/", bodyParser.urlencoded({ extended: true }), (req, res) => {
-    const context = { query: req.query, search: req.search, facebookAppId };
     const params = req.body;
     const { client: hull, ship } = req.hull;
+    const context = { query: req.query, search: req.search, facebookAppId, ship };
     return updateSettings({ hull, ship, params, req })
       .then(
         () => {
@@ -66,8 +75,8 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
   });
 
   app.post("/sync", bodyParser.urlencoded({ extended: true }), (req, res) => {
-    const context = { query: req.query, facebookAppId };
     const { client: hull, ship } = req.hull;
+    const context = { query: req.query, facebookAppId, ship };
     const fb = new FacebookAudience(ship, hull, req);
     if (fb.isConfigured()) {
       return fb.sync(ship, hull, req).then(
