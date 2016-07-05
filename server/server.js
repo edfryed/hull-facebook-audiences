@@ -6,7 +6,7 @@ import raven from "raven";
 import FacebookAudience from "./facebook-audience";
 import adminHandler from "./handlers/admin";
 
-function onError(err, req, res, next) {
+function onError(err, req, res, next) { // eslint-disable-line no-unused-vars
   // The error id is attached to `res.sentry` to be returned
   // and optionally displayed to the user for support.
   res.statusCode = 500;
