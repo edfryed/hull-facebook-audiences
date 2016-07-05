@@ -1,21 +1,17 @@
 import express from "express";
 import path from "path";
-import _ from "lodash";
-import Promise from "bluebird";
-import fbgraph from "fbgraph";
+import ejs from "ejs";
 
-import CAPABILITIES from "./capabilities";
 import FacebookAudience from "./facebook-audience";
-
 import adminHandler from "./handlers/admin";
 
 
 export default function Server({ Hull, port, facebookAppId, facebookAppSecret }) {
-  const { BatchHandler, NotifHandler, Routes, Middlewares } = Hull;
+  const { BatchHandler, NotifHandler, Routes } = Hull;
 
   const app = express();
-  app.engine("html", require("ejs").renderFile);
-  app.set("views", __dirname + "/views");
+  app.engine("html", ejs.renderFile);
+  app.set("views", `${__dirname}/views`);
 
 
   app.use(express.static(path.resolve(__dirname, "..", "dist")));
@@ -51,8 +47,7 @@ export default function Server({ Hull, port, facebookAppId, facebookAppSecret })
 
   app.use("/admin", adminHandler({ Hull, facebookAppSecret, facebookAppId }));
 
-  app.listen(port)
+  app.listen(port);
 
   return app;
-
 }
