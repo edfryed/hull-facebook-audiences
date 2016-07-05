@@ -75,6 +75,10 @@ export default class FacebookAudience {
     this.req = req;
   }
 
+  metric(metric, value = 1) {
+    this.hull.utils.metric(metric, value);
+  }
+
   getAccessToken() {
     return _.get(this.ship, "private_settings.facebook_access_token");
   }
@@ -100,6 +104,7 @@ export default class FacebookAudience {
   }
 
   createAudience(segment, extract = true) {
+    this.metric("audience.create");
     return this.fb("customaudiences", {
       subtype: "CUSTOM",
       retention_days: 180,
@@ -186,6 +191,8 @@ export default class FacebookAudience {
     }
     const schema = "EMAIL_SHA256";
     const params = { payload: { schema, data } };
+    const action = method === "del" ? "remove" : "add";
+    this.metric(`audience.users.${action}`, data.length);
     return this.fb(`${audienceId}/users`, params, method);
   }
 
@@ -208,6 +215,7 @@ export default class FacebookAudience {
       const fullparams = Object.assign({}, params, { access_token: accessToken });
       fbgraph[method](fullpath, fullparams, (err, result) => {
         if (err) {
+          this.metric("errors");
           console.warn("Unauthorized ", JSON.stringify({ fullpath, fullparams }));
         }
         return err ? reject(err) : resolve(result);
