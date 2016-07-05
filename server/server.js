@@ -19,7 +19,7 @@ export default function Server({ Hull, port, facebookAppId, facebookAppSecret, s
 
   const app = express();
   app.engine("html", ejs.renderFile);
-  app.set("views", `${__dirname}/views`);
+  app.set("views", path.resolve(__dirname, "..", "views"));
 
 
   if (sentryDSN) {
