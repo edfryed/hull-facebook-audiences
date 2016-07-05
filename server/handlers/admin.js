@@ -49,7 +49,7 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
         err.title = "Terms of service has not been accepted.";
         err.action = {
           message: "Click here to accept them",
-          url: `https://www.facebook.com/ads/manage/customaudiences/tos.php?act=${_.get(context, "ship.private_settings.facebook_ad_account_id")}`
+          url: `https://www.facebook.com/ads/manage/customaudiences/tos.php?act=${err.accountId}`
         };
       }
 

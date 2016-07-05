@@ -214,11 +214,16 @@ export default class FacebookAudience {
 
       const fullparams = Object.assign({}, params, { access_token: accessToken });
       fbgraph[method](fullpath, fullparams, (err, result) => {
+        let error;
         if (err) {
           this.metric("errors");
           console.warn("Unauthorized ", JSON.stringify({ fullpath, fullparams }));
+          error = {
+            ...err,
+            fullpath, fullparams, accountId
+          };
         }
-        return err ? reject(err) : resolve(result);
+        return err ? reject(error) : resolve(result);
       });
     });
   }
