@@ -1,18 +1,30 @@
 import express from "express";
 import path from "path";
 import ejs from "ejs";
+import raven from "raven";
 
 import FacebookAudience from "./facebook-audience";
 import adminHandler from "./handlers/admin";
 
+function onError(err, req, res, next) {
+  // The error id is attached to `res.sentry` to be returned
+  // and optionally displayed to the user for support.
+  res.statusCode = 500;
+  res.end(`${res.sentry}\n`);
+}
 
-export default function Server({ Hull, port, facebookAppId, facebookAppSecret }) {
+
+export default function Server({ Hull, port, facebookAppId, facebookAppSecret, sentryDSN }) {
   const { BatchHandler, NotifHandler, Routes } = Hull;
 
   const app = express();
   app.engine("html", ejs.renderFile);
   app.set("views", `${__dirname}/views`);
 
+
+  if (sentryDSN) {
+    app.use(raven.middleware.express.requestHandler(sentryDSN));
+  }
 
   app.use(express.static(path.resolve(__dirname, "..", "dist")));
   app.use(express.static(path.resolve(__dirname, "..", "assets")));
@@ -46,6 +58,12 @@ export default function Server({ Hull, port, facebookAppId, facebookAppSecret })
   }));
 
   app.use("/admin", adminHandler({ Hull, facebookAppSecret, facebookAppId }));
+
+  if (sentryDSN) {
+    app.use(raven.middleware.express.errorHandler(sentryDSN));
+  }
+
+  app.use(onError);
 
   app.listen(port);
 

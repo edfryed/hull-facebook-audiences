@@ -50,5 +50,6 @@ Server({
   Hull,
   facebookAppId: process.env.FACEBOOK_APP_ID,
   facebookAppSecret: process.env.FACEBOOK_APP_SECRET,
-  port: process.env.PORT || 8082
+  port: process.env.PORT || 8082,
+  sentryDSN: process.env.SENTRY_DSN
 });
