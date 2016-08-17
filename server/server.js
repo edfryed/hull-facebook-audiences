@@ -13,8 +13,7 @@ function onError(err, req, res, next) { // eslint-disable-line no-unused-vars
   res.end(`${res.sentry}\n`);
 }
 
-
-export default function Server({ Hull, port, facebookAppId, facebookAppSecret, sentryDSN }) {
+module.exports = function Server({ Hull, port, facebookAppId, facebookAppSecret, sentryDSN }) {
   const { BatchHandler, NotifHandler, Routes } = Hull;
 
   const app = express();
@@ -68,4 +67,4 @@ export default function Server({ Hull, port, facebookAppId, facebookAppSecret, s
   app.listen(port);
 
   return app;
-}
+};
