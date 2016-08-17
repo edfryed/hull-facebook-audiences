@@ -52,6 +52,7 @@
     "hull": "0.7.4",
     "librato-node": "^4.1.0",
     "lodash": "^4.13.1",
+    "newrelic": "^1.29.0",
     "raven": "^0.11.0",
     "rimraf": "^2.4.3",
     "urijs": "^1.17.1"

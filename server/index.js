@@ -1,6 +1,10 @@
-import Hull from "hull";
-import Server from "./server";
-import librato from "librato-node";
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+  require("newrelic");
+}
+
+const Hull = require("hull");
+const Server = require("./server");
+const librato = require("librato-node");
 
 
 Hull.onLog(function onLog(message, data, ctx = {}) {
