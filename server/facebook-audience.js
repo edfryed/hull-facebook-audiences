@@ -217,7 +217,7 @@ export default class FacebookAudience {
         let error;
         if (err) {
           this.metric("errors");
-          console.warn("Unauthorized ", JSON.stringify({ method, fullpath, fullparams }));
+          console.warn("Unauthorized ", JSON.stringify({ method, fullpath, fullparams, err }));
           error = {
             ...err,
             fullpath, fullparams, accountId
