@@ -172,11 +172,13 @@ export default class FacebookAudience {
     });
   }
 
-  removeUsersFromAudience(audienceId, users) {
+  removeUsersFromAudience(audienceId, users = []) {
+    console.warn("removeUsersFromAudience", JSON.stringify({ audienceId, users: users.map(u => u.email) }));
     return this.updateAudienceUsers(audienceId, users, "del");
   }
 
-  addUsersToAudience(audienceId, users) {
+  addUsersToAudience(audienceId, users = []) {
+    console.warn("addUsersToAudience", JSON.stringify({ audienceId, users: users.map(u => u.email) }));
     return this.updateAudienceUsers(audienceId, users, "post");
   }
 
