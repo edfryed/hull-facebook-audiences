@@ -1,7 +1,7 @@
 {
   "name": "Facebook Audiences",
   "description": "Send Hull Segments to Facebook Custom audiences",
-  "tags": ["outgoing", "batch"],
+  "tags": ["outgoing", "batch", "oneColumn"],
   "picture": "picture.png",
   "ui": false,
   "admin" : "admin",
@@ -11,12 +11,15 @@
     {
       "name" : "facebook_access_token",
       "title" : "Facebook Access Token",
-      "type" : "string"
+      "type" : "string",
+      "format":"hidden"
+
     },
     {
       "name" : "facebook_ad_account_id",
       "title" : "Facebook Ad Account ID",
-      "type" : "string"
+      "type" : "string",
+      "format":"hidden"
     }
   ],
   "resources": [],
