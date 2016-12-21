@@ -42,7 +42,6 @@ export default class BatchSyncHandler {
 
   add(message) {
     this.messages.push(message);
-    this.log("batchSyncHandler.added", { messages: this.messages.length });
     const { maxSize } = this.options;
     if (this.messages.length >= maxSize) {
       this.flush();
