@@ -1,36 +1,43 @@
-import Promise from 'bluebird';
-import _ from 'lodash';
-import URI from 'urijs';
-import CSVStream from 'csv-stream';
-import JSONStream from 'JSONStream';
-import EventStream from 'event-stream';
-import crypto from 'crypto';
-import request from 'request';
-const fbgraph = require('fbgraph');
+import Promise from "bluebird";
+import _ from "lodash";
+import URI from "urijs";
+import crypto from "crypto";
+import fbgraph from "fbgraph";
+import CAPABILITIES from "./capabilities";
 
-const BASE_URL = process.env.BASE_URL || 'https://hull-facebook-audiences.herokuapp.com';
+const ACCOUNT_FIELDS = [
+  "id",
+  "account_id",
+  "name",
+  "account_status",
+  "owner",
+  "owner_business",
+  "capabilities",
+  "business",
+  "user_role"
+];
 
 const AUDIENCE_FIELDS = [
-  'account_id',
-  'approximate_count',
-  'data_source',
-  'delivery_status',
-  'description',
-  'excluded_custom_audiences',
-  'external_event_source',
-  'included_custom_audiences',
-  'lookalike_spec',
-  'name',
-  'operation_status',
-  'opt_out_link',
-  'permission_for_actions',
-  'pixel_id',
-  'retention_days',
-  'rule',
-  'subtype',
-  'time_content_updated',
-  'time_created',
-  'time_updated'
+  "account_id",
+  "approximate_count",
+  "data_source",
+  "delivery_status",
+  "description",
+  "excluded_custom_audiences",
+  "external_event_source",
+  "included_custom_audiences",
+  "lookalike_spec",
+  "name",
+  "operation_status",
+  "opt_out_link",
+  "permission_for_actions",
+  "pixel_id",
+  "retention_days",
+  "rule",
+  "subtype",
+  "time_content_updated",
+  "time_created",
+  "time_updated"
 ];
 
 export default class FacebookAudience {
@@ -44,17 +51,19 @@ export default class FacebookAudience {
         return Promise.reject(error);
       }
       return handler[method](message);
-    }
+    };
+  }
+
+  static sync(ship, hull, req) {
+    return new FacebookAudience(ship, hull, req).sync();
   }
 
   sync() {
     return Promise.all([
       this.fetchAudiences(),
-      this.hull.get('segments', { limit: 500 })
-    ]).then((ab) => {
-      const audiences = ab[0];
-      const segments = ab[1];
-      return Promise.all(segments.map( segment => {
+      this.hull.get("segments", { limit: 500 })
+    ]).then(([audiences, segments]) => {
+      return Promise.all(segments.map(segment => {
         return audiences[segment.id] || this.createAudience(segment);
       }));
     });
@@ -66,16 +75,16 @@ export default class FacebookAudience {
     this.req = req;
   }
 
+  metric(metric, value = 1) {
+    this.hull.utils.metric(metric, value);
+  }
+
   getAccessToken() {
-    if (this.ship && this.ship.private_settings) {
-      return this.ship.private_settings.facebook_access_token;
-    }
+    return _.get(this.ship, "private_settings.facebook_access_token");
   }
 
   getAccountId() {
-    if (this.ship && this.ship.private_settings) {
-      return this.ship.private_settings.facebook_ad_account_id;
-    }
+    return _.get(this.ship, "private_settings.facebook_ad_account_id");
   }
 
   getManagerUrl(audience) {
@@ -94,30 +103,26 @@ export default class FacebookAudience {
     return !!(accessToken && accountId);
   }
 
-  createAudience(segment, extract=true) {
-    return this.fb('customaudiences', {
-      subtype: 'CUSTOM',
+  createAudience(segment, extract = true) {
+    this.metric("audience.create");
+    return this.fb("customaudiences", {
+      subtype: "CUSTOM",
       retention_days: 180,
       description: segment.id,
       name: `[Hull] ${segment.name}`
-    }, 'post').then(audience => {
+    }, "post").then(audience => {
       if (extract) this.requestExtract({ segment, audience });
-      return Object.assign({ isNew: true }, audience)
+      return Object.assign({ isNew: true }, audience);
     });
   }
 
   getOrCreateAudienceForSegment(segment) {
     return this.fetchAudiences().then(audiences => {
-      const audience = audiences[segment.id];
-      if (!audience) {
-        return this.createAudience(segment);
-      } else {
-        return audience;
-      }
+      return audiences[segment.id] || this.createAudience(segment);
     });
   }
 
-  handleUserUpdate({ user, segments, changes }) {
+  handleUserUpdate({ user, changes }) {
     if (changes && changes.segments) {
       const { entered, left } = changes.segments;
       (entered || []).map(this.handleUserEnteredSegment.bind(this, user));
@@ -144,129 +149,130 @@ export default class FacebookAudience {
   handleSegmentDelete(segment) {
     return this.fetchAudiences().then(audiences => {
       const audience = audiences[segment.id];
-      if (audience) {
-        return this.fb(audience.id, {}, 'del');
-      }
+      return audience && this.fb(audience.id, {}, "del");
     });
   }
 
-  requestExtract({ segment, audience, format }) {
-    const { hostname, query } = this.req;
-    const search = Object.assign({}, query, {
+  requestExtract({ segment, audience, format = "csv" }) {
+    const search = Object.assign({}, this.req.query, {
       segment: segment.id,
       audience: audience && audience.id
     });
-    const callbackUrl = URI('https://' + hostname)
-      .path('batch')
-      .search(search).toString();
+
+    const url = URI(`https://${this.req.hostname}`)
+      .path("batch")
+      .search(search)
+      .toString();
 
     return this.hull.get(segment.id).then(({ query }) => {
-      return this.hull.post('extract/user_reports', {
-        format: format || 'csv',
-        fields: ['id', 'email', 'contact_email', 'name'],
-        query: query,
-        url: callbackUrl
+      return this.hull.post("extract/user_reports", {
+        format, query, url,
+        fields: ["id", "email", "name"]
       });
     });
   }
 
-  removeUsersFromAudience(audienceId, users) {
-    return this.updateAudienceUsers(audienceId, users, 'del');
+  removeUsersFromAudience(audienceId, users = []) {
+    console.warn("removeUsersFromAudience", JSON.stringify({ audienceId, users: users.map(u => u.email) }));
+    return this.updateAudienceUsers(audienceId, users, "del");
   }
 
-  addUsersToAudience(audienceId, users) {
-    return this.updateAudienceUsers(audienceId, users, 'post');
+  addUsersToAudience(audienceId, users = []) {
+    console.warn("addUsersToAudience", JSON.stringify({ audienceId, users: users.map(u => u.email) }));
+    return this.updateAudienceUsers(audienceId, users, "post");
   }
 
   updateAudienceUsers(audienceId, users, method) {
-    const data = _.compact((users || []).map((user) => {
-      const email = user.contact_email || user.email;
-      if (email) {
-        return crypto.createHash('sha256')
-                      .update(email)
-                      .digest('hex');
-      }
+    const data = _.compact((users || []).map(({ email }) => {
+      return email && crypto.createHash("sha256")
+                    .update(email)
+                    .digest("hex");
     }));
-    if (data && data.length > 0) {
-      const schema = 'EMAIL_SHA256';
-      const params = { payload: { schema, data } };
-      return this.fb(audienceId + '/users', params, method);
+    if (_.isEmpty(data)) {
+      return Promise.resolve({ data: [] });
     }
+    const schema = "EMAIL_SHA256";
+    const params = { payload: { schema, data } };
+    const action = method === "del" ? "remove" : "add";
+    this.metric(`audience.users.${action}`, data.length);
+    return this.fb(`${audienceId}/users`, params, method);
   }
 
-  handleExtract({ url, format }, callback) {
-    if (url && format) {
-      const users = [];
-      const decoder = format == 'csv' ? CSVStream.createStream() : JSONStream.parse();
+  fb(path, params = {}, method = "get") {
+    fbgraph.setVersion("2.7");
+    const { accessToken, accountId } = this.getCredentials();
+    if (!accessToken) {
+      throw new Error("MissingCredentials");
+    }
+    return new Promise((resolve, reject) => {
+      let fullpath = path;
 
-      const flush = (user) => {
-        if (user) {
-          users.push(user);
+      if (path.match(/^customaudiences/)) {
+        if (!accountId) {
+          throw new Error("MissingAccountId");
         }
-        if (users.length >= 100 || !user) {
-          callback(users.splice(0))
-        }
+        fullpath = `act_${accountId}/${path}`;
       }
 
-      return request({ url })
-        .pipe(decoder)
-        .on('data', flush)
-        .on('end', flush);
-    }
-  }
-
-  fb(path, params={}, method='get') {
-    fbgraph.setVersion('2.5');
-    const { accessToken, accountId } = this.getCredentials();
-    if (accessToken) {
-      return new Promise((resolve, reject) => {
-        let fullpath = path;
-
-        if (path.match(/^customaudiences/)) {
-          if (!accountId) {
-            return Promise.reject(new Error('Missing AccountId'));
-          }
-          fullpath = `act_${accountId}/${path}`
+      const fullparams = Object.assign({}, params, { access_token: accessToken });
+      fbgraph[method](fullpath, fullparams, (err, result) => {
+        let error;
+        if (err) {
+          this.metric("errors");
+          console.warn("Unauthorized ", JSON.stringify({ method, fullpath, fullparams, err }));
+          error = {
+            ...err,
+            fullpath, fullparams, accountId
+          };
         }
-
-        const fullparams = Object.assign({}, params, { access_token: accessToken });
-        fbgraph[method](fullpath, fullparams, (err, result) => {
-          err ? reject(err) : resolve(result);
-        })
+        return err ? reject(error) : resolve(result);
       });
-    } else {
-      return Promise.reject(new Error('Missing Credentials'));
-    }
+    });
   }
 
   fetchPixels(accountId) {
-    return this.fb('act_'+accountId+'/adspixels', {fields: 'name'});
-  }
-  fetchImages(accountId) {
-    return this.fb('act_'+accountId+'/adimages', {fields: 'url_128'});
+    return this.fb(`act_${accountId}/adspixels`, { fields: "name" });
   }
 
-  fetchAvailableAccounts() {
-    return this.fb('me/adaccounts', {
-      fields: [
-        'id',
-        'account_id',
-        'name',
-        'account_status',
-        'owner',
-        'owner_business',
-        'capabilities',
-        'business',
-        'user_role'
-      ].join(',')
-    });
+  fetchImages(accountId) {
+    return this.fb(`act_${accountId}/adimages`, { fields: "url_128" });
+  }
+
+  fetchAvailableAccounts(params = {}) {
+    const fields = ACCOUNT_FIELDS.join(",");
+    return this.fb("me/adaccounts", { ...params, fields })
+    .then((({ data }) => {
+      const promises = [];
+      data.map((account) => {
+        account.capabilities = _.compact((account.capabilities || []).map(
+          cap => (CAPABILITIES[cap] || false)
+        )).join(", ");
+
+        const pix = this.fetchPixels(account.account_id).then((pixels) => {
+          account.pixels = _.compact((pixels.data || []).map(px => px.name)).join(", ");
+          return account;
+        });
+        promises.push(pix);
+
+        const img = this.fetchImages(account.account_id).then(images => {
+          account.images = _.slice((images.data || []).map(i => i.url_128), 0, 4);
+          return account;
+        });
+        promises.push(img);
+
+        return account;
+      });
+
+      return Promise.all(promises).then(() => data);
+    }));
   }
 
   fetchAudiences() {
     // TODO Add support for paging
-    return this.fb( 'customaudiences',
-      { fields: AUDIENCE_FIELDS.join(','), limit: 100 }
-    ).then(({ data }) => {
+    return this.fb("customaudiences", {
+      fields: AUDIENCE_FIELDS.join(","),
+      limit: 100
+    }).then(({ data }) => {
       return data.reduce((audiences, a) => {
         const match = a.description && a.description.match(/[a-z0-9]{24}/i);
         const segmentId = match && match[0];
@@ -274,7 +280,7 @@ export default class FacebookAudience {
           audiences[segmentId] = a;
         }
         return audiences;
-      }, {})
+      }, {});
     });
   }
 
