@@ -19,7 +19,7 @@ export default class BatchSyncHandler {
     return HANDLERS[key] = HANDLERS[key] || new BatchSyncHandler(args); // eslint-disable-line no-return-assign
   }
 
-  constructor({ ns = "", ship, hull, options = {} }) {
+  constructor({ ns = "", ship = {}, hull, options = {} }) {
     this.ns = ns;
     this.ship = ship;
     this.hull = hull;
@@ -36,9 +36,13 @@ export default class BatchSyncHandler {
     return this;
   }
 
+  log(msg, data = {}) {
+    console.warn(msg, { ship: this.ship.id }, JSON.stringify(data));
+  }
+
   add(message) {
     this.messages.push(message);
-    console.warn("batchSyncHandler.added", this.messages.length);
+    this.log("batchSyncHandler.added", { messages: this.messages.length });
     const { maxSize } = this.options;
     if (this.messages.length >= maxSize) {
       this.flush();
@@ -50,14 +54,13 @@ export default class BatchSyncHandler {
 
   flush() {
     const messages = this.messages;
-    console.warn("batchSyncHandler.flush", messages.length);
+    this.log("batchSyncHandler.flush", { messages: messages.length });
     this.messages = [];
     return this.callback(messages, this)
       .then(() => {
-        console.warn("batchSyncHandler.flush.sucess");
-      }, (err) => {
-        console.error(err);
-        console.error("batchSyncHandler.flush.error", err);
+        this.log("batchSyncHandler.flush.sucess");
+      }, (err = {}) => {
+        this.log("batchSyncHandler.flush.error", { message: err.message });
       });
   }
 }

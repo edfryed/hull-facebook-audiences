@@ -226,13 +226,17 @@ export default class FacebookAudience {
     });
   }
 
+  log(msg, data = {}) {
+    console.warn(msg, { ship: this.ship.id }, JSON.stringify(data));
+  }
+
   removeUsersFromAudience(audienceId, users = []) {
-    console.warn("removeUsersFromAudience", JSON.stringify({ audienceId, users: users.map(u => u.email) }));
+    this.log("removeUsersFromAudience", { audienceId, users: users.map(u => u.email) });
     return this.updateAudienceUsers(audienceId, users, "del");
   }
 
   addUsersToAudience(audienceId, users = []) {
-    console.warn("addUsersToAudience", JSON.stringify({ audienceId, users: users.map(u => u.email) }));
+    this.log("addUsersToAudience", { audienceId, users: users.map(u => u.email) });
     return this.updateAudienceUsers(audienceId, users, "post");
   }
 
@@ -273,7 +277,7 @@ export default class FacebookAudience {
         let error;
         if (err) {
           this.metric("errors");
-          console.warn("unauthorized ", JSON.stringify({ ship: this.ship.id, method, fullpath, fullparams, err }));
+          this.log("unauthorized", { method, fullpath, fullparams, err });
           error = {
             ...err,
             fullpath, fullparams, accountId
