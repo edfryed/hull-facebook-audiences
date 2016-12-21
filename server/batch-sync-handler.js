@@ -52,14 +52,19 @@ export default class BatchSyncHandler {
   }
 
   flush() {
-    const messages = this.messages;
-    this.log("batchSyncHandler.flush", { messages: messages.length });
-    this.messages = [];
-    return this.callback(messages, this)
-      .then(() => {
-        this.log("batchSyncHandler.flush.sucess");
-      }, (err = {}) => {
-        this.log("batchSyncHandler.flush.error", { message: err.message });
-      });
+    try {
+      const messages = this.messages;
+      this.log("batchSyncHandler.flush", { messages: messages.length });
+      this.messages = [];
+      return this.callback(messages, this)
+        .then(() => {
+          this.log("batchSyncHandler.flush.sucess");
+        }, (err = {}) => {
+          this.log("batchSyncHandler.flush.error", { message: err.message });
+        });
+    } catch (err) {
+      this.log("batchSyncHandler.flush.error", { message: err.message });
+      return false;
+    }
   }
 }
