@@ -5,6 +5,8 @@ import crypto from "crypto";
 import fbgraph from "fbgraph";
 import CAPABILITIES from "./capabilities";
 
+import BatchSyncHandler from "./batch-sync-handler";
+
 const ACCOUNT_FIELDS = [
   "id",
   "account_id",
@@ -52,6 +54,58 @@ export default class FacebookAudience {
       }
       return handler[method](message);
     };
+  }
+
+  static handleUserUpdate({ message = {} }, { ship, hull, req }) {
+    const { user, changes } = message;
+
+    // Ignore if no changes on users' segments
+    if (!user.email || !changes || _.isEmpty(changes.segments)) {
+      return false;
+    }
+
+    // Reduce payload to keep in memory
+    const payload = {
+      user: _.pick(user, "email"),
+      changes: _.pick(changes, "segments")
+    };
+
+    // Agent instance
+    const agent = new FacebookAudience(ship, hull, req);
+
+    return BatchSyncHandler.getHandler({
+      hull, ship,
+      options: {
+        maxSize: process.env.NOTIFY_BATCH_HANDLER_SIZE || 100,
+        throttle: process.env.NOTIFY_BATCH_HANDLER_THROTTLE || 10000,
+        callback: FacebookAudience.flushUserUpdates.bind(this, agent)
+      }
+    }).add(payload);
+  }
+
+  static flushUserUpdates(agent, messages) {
+    const operations = messages.reduce((ops, { user, changes }) => {
+      if (changes && changes.segments) {
+        const { entered, left } = changes.segments;
+        (entered || []).forEach(segment => {
+          ops[segment.id] = ops[segment.id] || { segment, entered: [], left: [] };
+          ops[segment.id].entered.push(_.pick(user, "id", "email"));
+        });
+        (left || []).forEach(segment => {
+          ops[segment.id] = ops[segment.id] || { segment, entered: [], left: [] };
+          ops[segment.id].left.push(_.pick(user, "id", "email"));
+        });
+      }
+      return ops;
+    }, {});
+
+    return Promise.all(_.map(operations, ({ segment, entered, left }) => {
+      return agent.getOrCreateAudienceForSegment(segment).then(audience => {
+        if (left.length > 0) agent.removeUsersFromAudience(audience.id, left);
+        if (entered.length > 0) agent.addUsersToAudience(audience.id, entered);
+        return { audience, segment, entered, left };
+      });
+    }));
   }
 
   static sync(ship, hull, req) {

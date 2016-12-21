@@ -55,6 +55,7 @@
     "newrelic": "^1.29.0",
     "raven": "^0.11.0",
     "rimraf": "^2.4.3",
+    "sinon": "^1.17.6",
     "urijs": "^1.17.1"
   },
   "devDependencies": {

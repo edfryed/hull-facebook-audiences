@@ -40,7 +40,7 @@ module.exports = function Server({ Hull, port, facebookAppId, facebookAppSecret,
     handlers: {
       "segment:update": FacebookAudience.handle("handleSegmentUpdate"),
       "segment:delete": FacebookAudience.handle("handleSegmentDelete"),
-      "user:update": FacebookAudience.handle("handleUserUpdate")
+      "user:update": FacebookAudience.handleUserUpdate
     }
   }));
 
