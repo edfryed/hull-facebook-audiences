@@ -73,6 +73,12 @@ export default class FacebookAudience {
     // Agent instance
     const agent = new FacebookAudience(ship, hull, req);
 
+
+    if (!agent.configured()) {
+      console.warn("Skip - missing configuration", { ship: ship.id });
+      return false;
+    }
+
     return BatchSyncHandler.getHandler({
       hull, ship,
       options: {
