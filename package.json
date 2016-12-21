@@ -22,9 +22,9 @@
   },
   "scripts": {
     "build": "npm run clean && npm run build:server",
-    "build:server": "./node_modules/.bin/babel server -d lib",
-    "clean": "./node_modules/.bin/rimraf dist; ./node_modules/.bin/rimraf lib",
-    "start": "node ./lib",
+    "build:server": "./node_modules/.bin/babel server -d build",
+    "clean": "./node_modules/.bin/rimraf dist; ./node_modules/.bin/rimraf build",
+    "start": "node ./build",
     "start:dev": "NODE_ENV=development ./node_modules/.bin/nodemon -d 2 -V -w server -x ./node_modules/.bin/babel-node -- server",
     "test": "npm run test:lint && npm run test:units",
     "test:lint": "./node_modules/.bin/eslint server",
