@@ -73,10 +73,10 @@ export default class FacebookAudience {
     // Agent instance
     const agent = new FacebookAudience(ship, hull, req);
 
-
-    if (!agent.configured()) {
-      console.warn("Skip - missing configuration", { ship: ship.id });
-      return false;
+    if (!agent.isConfigured()) {
+      const error = new Error("Missing credentials");
+      error.status = 403;
+      return Promise.reject(error);
     }
 
     return BatchSyncHandler.getHandler({
