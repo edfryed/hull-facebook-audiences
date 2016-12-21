@@ -63,7 +63,7 @@ export default class BatchSyncHandler {
   flush() {
     try {
       const messages = this.messages;
-      this.log("batchSyncHandler.flush", { messages: messages.length });
+      this.log("batchSyncHandler.flush.start", { messages: messages.length });
       this.messages = [];
       return this.callback(messages, this)
         .catch(this.onError)
