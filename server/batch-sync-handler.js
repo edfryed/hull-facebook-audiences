@@ -51,19 +51,25 @@ export default class BatchSyncHandler {
     return Promise.resolve();
   }
 
+  onError(err) {
+    this.log("batchSyncHandler.flush.error", { message: err.message });
+  }
+
+  onSuccess() {
+    this.log("batchSyncHandler.flush.sucess");
+  }
+
+
   flush() {
     try {
       const messages = this.messages;
       this.log("batchSyncHandler.flush", { messages: messages.length });
       this.messages = [];
       return this.callback(messages, this)
-        .then(() => {
-          this.log("batchSyncHandler.flush.sucess");
-        }, (err = {}) => {
-          this.log("batchSyncHandler.flush.error", { message: err.message });
-        });
+        .catch(this.onError)
+        .then(this.onSuccess);
     } catch (err) {
-      this.log("batchSyncHandler.flush.error", { message: err.message });
+      this.onError(err);
       return false;
     }
   }
