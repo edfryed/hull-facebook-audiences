@@ -66,8 +66,8 @@ export default class BatchSyncHandler {
       this.log("batchSyncHandler.flush.start", { messages: messages.length });
       this.messages = [];
       return this.callback(messages, this)
-        .catch(this.onError)
-        .then(this.onSuccess);
+        .catch(this.onError.bind(this))
+        .then(this.onSuccess.bind(this));
     } catch (err) {
       this.onError(err);
       return false;
