@@ -4,6 +4,7 @@ import URI from "urijs";
 import crypto from "crypto";
 import fbgraph from "fbgraph";
 import CAPABILITIES from "./capabilities";
+import CustomAudiences from "./lib/custom-audiences";
 
 import BatchSyncHandler from "./batch-sync-handler";
 
@@ -133,6 +134,7 @@ export default class FacebookAudience {
     this.ship = ship;
     this.hull = hull;
     this.req = req;
+    this.customAudiences = new CustomAudiences();
   }
 
   metric(metric, value = 1) {
@@ -247,16 +249,12 @@ export default class FacebookAudience {
   }
 
   updateAudienceUsers(audienceId, users, method) {
-    const data = _.compact((users || []).map(({ email }) => {
-      return email && crypto.createHash("sha256")
-                    .update(email)
-                    .digest("hex");
-    }));
-    if (_.isEmpty(data)) {
+    const payload = this.customAudiences.buildCustomAudiencePayload(_.compact((users || [])));
+    if (_.isEmpty(payload.data)) {
       return Promise.resolve({ data: [] });
     }
-    const schema = "EMAIL_SHA256";
-    const params = { payload: { schema, data } };
+
+    const params = { payload };
     const action = method === "del" ? "remove" : "add";
     this.metric(`audience.users.${action}`, data.length);
     return this.fb(`${audienceId}/users`, params, method);
