@@ -5,10 +5,14 @@ import raven from "raven";
 
 import FacebookAudience from "./facebook-audience";
 import adminHandler from "./handlers/admin";
+import InstrumentationAgent from "./util/instrumentation-agent";
+
+FacebookAudience.instrumentationAgent = new InstrumentationAgent();
 
 function onError(err, req, res, next) { // eslint-disable-line no-unused-vars
   // The error id is attached to `res.sentry` to be returned
   // and optionally displayed to the user for support.
+  console.error(err);
   res.statusCode = 500;
   res.end(`${res.sentry}\n`);
 }
@@ -33,6 +37,7 @@ module.exports = function Server({ Hull, port, facebookAppId, facebookAppSecret,
   app.get("/readme", Routes.Readme);
 
   app.post("/notify", NotifHandler({
+    hostSecret: process.env.SECRET,
     onSubscribe() {
       console.warn("Hello new subscriber");
     },
@@ -45,6 +50,7 @@ module.exports = function Server({ Hull, port, facebookAppId, facebookAppSecret,
   }));
 
   app.post("/batch", BatchHandler({
+    hostSecret: process.env.SECRET,
     groupTraits: false,
     handler(messages = [], { hull, ship, req }) {
       const { audience } = req.query;

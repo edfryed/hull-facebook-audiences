@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import _ from "lodash";
 
 /**
  * @see https://developers.facebook.com/docs/marketing-api/custom-audience-api/v2.8
@@ -19,28 +20,30 @@ export default class CustomAudiences {
   }
 
   hashValue(value) {
+    if (!value) {
+      return "";
+    }
     return crypto.createHash("sha256")
       .update(value.toLowerCase())
       .digest("hex");
   }
 
-  buildPayload(user, schema) {
-    const data = [];
-    _.forEach(this.matches, (fbKey, hull) => {
-      if (_.has(user, hull) || _.find(schema, fbKey)) {
-        _.union(schema, [fbKey]);
-        data.push(this.hashValue(_.get(user, hull)));
-      }
-    });
-    return data;
+  getExtractFields() {
+    return _.keys(this.matches);
   }
 
   buildCustomAudiencePayload(users) {
-    const schema = [];
-    const data = users.map((user) => buildPayload(user, schema));
-    if (_.isEmpty(data)) {
-      return Promise.resolve({ data: [] });
-    }
+    let schema = [];
+    const data = users.map((user) => {
+      const userData = [];
+      _.forEach(this.matches, (fbKey, hull) => {
+        if (_.has(user, hull) || _.find(schema, fbKey)) {
+          schema = _.union(schema, [fbKey]);
+          userData.push(this.hashValue(_.get(user, hull)));
+        }
+      });
+      return userData;
+    }, []);
 
     return { schema, data };
   }

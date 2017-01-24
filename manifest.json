@@ -20,6 +20,14 @@
       "title" : "Facebook Ad Account ID",
       "type" : "string",
       "format":"hidden"
+    },
+    {
+      "name": "synchronized_segments",
+      "title": "Segments",
+      "description": "Sync to Facebook these segments.",
+      "default": [],
+      "type": "array",
+      "format": "segment"
     }
   ],
   "resources": [],
