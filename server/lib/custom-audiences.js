@@ -13,9 +13,11 @@ export default class CustomAudiences {
       first_name: "FN",
       last_name: "LN",
       phone: "PHONE",
+      // gender -> GEN m,f
+      // address_state: "ST" // 2-character ANSI abbreviation code
       address_city: "CT",
-      address_country: "COUNTRY",
-      address_state: "ST"
+      address_country: "COUNTRY", // 2-letter country codes as defined by ISO 3166-1 alpha-2
+      // country name is not available
     };
   }
 

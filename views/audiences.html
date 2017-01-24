@@ -66,7 +66,18 @@
 
 
             <% } else { -%>
-              <% if (!synchronizedSegments || !synchronizedSegments.length) { -%>
+
+              <% if (!segments || !segments.length) { -%>
+                <div class="panel-body text-center">
+                  <h1 class="condensed mt-0 mb-0">No segment found</h1>
+                  <p>First, go to the Users tab and create some segments, then specify which segments you want to send to Facebook from the Settings tab</p>
+                  <div class="mt-2">
+                    <div class="mb-2 col-md-2 col-md-offset-5">
+                      <img src="https://dd04rofzygnm0.cloudfront.net/releases/master/865f04865d2448286626bac92c518a8f8ea8bafe/images/blankslate/avatar.svg" class="img-responsive">
+                    </div>
+                  </div>
+                </div>
+              <% } else if (!synchronizedSegments || !synchronizedSegments.length) { -%>
                 <div class="panel-body text-center">
                   <h1 class="condensed mt-0 mb-0">No segments set to synchronize</h1>
                   <p>Go to settings to pick some segments to be synchronized</p>
@@ -76,7 +87,7 @@
                     </div>
                   </div>
                 </div>
-              <% } else if (segments && segments.length) { -%>
+              <% } else { -%>
                 <div class="panel-body text-center">
                   <h1 class="condensed mt-0 mb-0">No audiences synchronized</h1>
                   <p>Synchronize following segments: <%= synchronizedSegments.map(s => s.name).join(", ") %></p>
@@ -90,16 +101,6 @@
                       <form method="post" action="/admin/sync?ship=<%= query.ship %>&organization=<%= query.organization %>&secret=<%= query.secret%>">
                         <input type="submit" name="action" value="Sync selected segments" class="btn btn-danger">
                       </form>
-                    </div>
-                  </div>
-                </div>
-              <% } else { -%>
-                <div class="panel-body text-center">
-                  <h1 class="condensed mt-0 mb-0">No segment found</h1>
-                  <p>First, go to the Users tab and create some segments, then specify which segments you want to send to Facebook from the Settings tab</p>
-                  <div class="mt-2">
-                    <div class="mb-2 col-md-2 col-md-offset-5">
-                      <img src="https://dd04rofzygnm0.cloudfront.net/releases/master/865f04865d2448286626bac92c518a8f8ea8bafe/images/blankslate/avatar.svg" class="img-responsive">
                     </div>
                   </div>
                 </div>
