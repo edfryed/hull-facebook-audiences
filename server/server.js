@@ -49,6 +49,9 @@ module.exports = function Server({ Hull, port, facebookAppId, facebookAppSecret,
     }
   }));
 
+  /**
+   * Handles batches. Only those which are sent with additional audience param - so ones requested from the ship.
+   */
   app.post("/batch", BatchHandler({
     hostSecret: process.env.SECRET,
     groupTraits: false,

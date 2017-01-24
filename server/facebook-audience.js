@@ -99,6 +99,13 @@ export default class FacebookAudience {
     }).add(payload);
   }
 
+  /**
+   * Performs actions on users grouped by `handleUserUpdate` method.
+   * It only works on segments saved in `synchronized_segments` setting
+   * @param  {Object} agent     instance of FacebookAudience
+   * @param  {Object} messages
+   * @return {Promise}
+   */
   static flushUserUpdates(agent, messages) {
     const operations = messages.reduce((ops, { user, changes }) => {
       if (changes && changes.segments) {
