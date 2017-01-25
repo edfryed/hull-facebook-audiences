@@ -137,8 +137,6 @@ export default class FacebookAudience {
           return { audience, segment, entered, left };
         }));
       });
-
-
   }
 
   /**
