@@ -74,14 +74,14 @@ export default class FacebookAudience {
       return false;
     }
 
-    // Reduce payload to keep in memory
-    const payload = {
-      user: _.pick(user, "email"),
-      changes: _.pick(changes, "segments")
-    };
-
     // Agent instance
     const agent = new FacebookAudience(ship, hull, req);
+
+    // Reduce payload to keep in memory
+    const payload = {
+      user: _.pick(user, agent.customAudiences.getExtractFields()),
+      changes: _.pick(changes, "segments")
+    };
 
     if (!agent.isConfigured()) {
       const error = new Error("Missing credentials");
@@ -107,31 +107,38 @@ export default class FacebookAudience {
    * @return {Promise}
    */
   static flushUserUpdates(agent, messages) {
+    let segments = [];
     const operations = messages.reduce((ops, { user, changes }) => {
       if (changes && changes.segments) {
         const { entered, left } = changes.segments;
+        segments = _.union(segments, entered, left);
         (entered || []).forEach(segment => {
           ops[segment.id] = ops[segment.id] || { segment, entered: [], left: [] };
-          ops[segment.id].entered.push(_.pick(user, "id", "email"));
+          ops[segment.id].entered.push(user);
         });
         (left || []).forEach(segment => {
           ops[segment.id] = ops[segment.id] || { segment, entered: [], left: [] };
-          ops[segment.id].left.push(_.pick(user, "id", "email"));
+          ops[segment.id].left.push(user);
         });
       }
       return ops;
     }, {});
 
-    return Promise.all(_.map(operations, ({ segment, entered, left }) => {
-      return agent.getOrCreateAudienceForSegment(segment).then(audience => {
-        if (!audience) {
-          return {};
-        }
-        if (left.length > 0) agent.removeUsersFromAudience(audience.id, left);
-        if (entered.length > 0) agent.addUsersToAudience(audience.id, entered);
-        return { audience, segment, entered, left };
+    return Promise.all(segments.map(s => agent.getOrCreateAudienceForSegment(s)))
+      .then(() => agent.fetchAudiences())
+      .then(audiences => {
+        return Promise.all(_.map(operations, ({ segment, entered, left }) => {
+          const audience = audiences[segment.id];
+          if (!audience || !_.includes(agent.ship.private_settings.synchronized_segments, segment.id)) {
+            return {};
+          }
+          if (left.length > 0) agent.removeUsersFromAudience(audience.id, left);
+          if (entered.length > 0) agent.addUsersToAudience(audience.id, entered);
+          return { audience, segment, entered, left };
+        }));
       });
-    }));
+
+
   }
 
   /**
@@ -154,7 +161,7 @@ export default class FacebookAudience {
     this.ship = ship;
     this.hull = hull;
     this.req = req;
-    this.customAudiences = new CustomAudiences(ship);
+    this.customAudiences = new CustomAudiences(ship, hull.logger);
     this.hullAgent = new HullAgent(req);
   }
 
