@@ -154,7 +154,7 @@ export default class FacebookAudience {
     this.ship = ship;
     this.hull = hull;
     this.req = req;
-    this.customAudiences = new CustomAudiences();
+    this.customAudiences = new CustomAudiences(ship);
     this.hullAgent = new HullAgent(req);
   }
 
@@ -280,7 +280,7 @@ export default class FacebookAudience {
         let error;
         if (err) {
           this.metric("ship.errors");
-          this.log("unauthorized", { method, fullpath, fullparams, err });
+          this.hull.logger.error("unauthorized", { method, fullpath, fullparams, err });
           error = {
             ...err,
             fullpath, fullparams, accountId

@@ -42,6 +42,7 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
   }
 
   function handleError(context, err = {}) {
+    console.error(err);
     if (err.type === "OAuthException" && (err.code === 100 || err.code === 190)) {
       this.render("login.html", context);
     } else {
