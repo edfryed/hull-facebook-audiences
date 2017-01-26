@@ -31,11 +31,8 @@ export default class CustomAudiences {
     if (!value) {
       return "";
     }
-
-    const trimmedValued = _.trim(value).toLowerCase();
-
     return crypto.createHash("sha256")
-      .update(trimmedValued)
+      .update(value)
       .digest("hex");
   }
 
@@ -75,6 +72,7 @@ export default class CustomAudiences {
           if (this[`normalize${_.upperFirst(fbKey.toLowerCase())}`]) {
             value = this[`normalize${_.upperFirst(fbKey.toLowerCase())}`](value);
           }
+          value = _.trim(value).toLowerCase();
           this.logger.debug(fbKey, value);
           userData.push(this.hashValue(value));
         }
