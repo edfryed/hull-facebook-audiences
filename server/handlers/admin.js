@@ -2,6 +2,7 @@ import { Router } from "express";
 import fbgraph from "fbgraph";
 import bodyParser from "body-parser";
 import FacebookAudience from "../facebook-audience";
+import Promise from "bluebird";
 import _ from "lodash";
 
 export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) {
@@ -41,6 +42,7 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
   }
 
   function handleError(context, err = {}) {
+    console.error(err);
     if (err.type === "OAuthException" && (err.code === 100 || err.code === 190)) {
       this.render("login.html", context);
     } else {
@@ -59,7 +61,7 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
 
   const app = Router();
 
-  app.use(Hull.Middlewares.hullClient({ cacheShip: false }));
+  app.use(Hull.Middleware({ cacheShip: false, hostSecret: process.env.SECRET }));
 
   app.post("/", bodyParser.urlencoded({ extended: true }), (req, res) => {
     const params = req.body;
@@ -102,9 +104,21 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
        .then(accounts => res.render("accounts.html", { ...context, accounts }))
        .catch(handleError.bind(res, context));
     } else {
-      fb.fetchAudiences()
-        .then(audiences => res.render("audiences.html", { ...context, audiences: _.values(audiences) }))
-        .catch(handleError.bind(res, context));
+      Promise.all([
+        fb.fetchAudiences(),
+        fb.hull.get("segments", { limit: 500 }),
+        fb.hullAgent.getSynchronizedSegments()
+      ])
+      .spread((audiences, segments, synchronizedSegments) => {
+        return res.render("audiences.html", {
+          ...context,
+          audiences,
+          segments,
+          synchronizedSegments,
+          _
+        });
+      })
+      .catch(handleError.bind(res, context));
     }
   });
 

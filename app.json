@@ -14,6 +14,18 @@
     },
     "FACEBOOK_APP_SECRET" : {
       "description" : "Facebook App Secret used to get an access token"
+    },
+    "DATADOG_API_KEY": {
+      "description": "Datadog integration API KEY",
+      "required": false
+    },
+    "HOST": {
+      "description": "A hostname to be set in Datadog integration",
+      "required": false
+    },
+    "LOG_LEVEL": {
+      "description": "Minimum level of system messages to be logged",
+      "required": false
     }
   },
   "scripts": {}

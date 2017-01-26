@@ -7,9 +7,20 @@ import _ from "lodash";
 describe("FacebookAudiences.flushUserUpdates", () => {
   it("should call audience ops", (done) => {
     const fakeAgent = {
-      getOrCreateAudienceForSegment: segment => Promise.resolve(segment),
+      ship: {
+        private_settings: {
+          synchronized_segments: [
+            "585a69b2d5536348cf000128", "585a69b2d5536348cf000129"
+          ]
+        }
+      },
+      getOrCreateAudienceForSegment: spy(),
       removeUsersFromAudience: spy(),
-      addUsersToAudience: spy()
+      addUsersToAudience: spy(),
+      fetchAudiences: () => Promise.resolve({
+        "585a69b2d5536348cf000128": "test1",
+        "585a69b2d5536348cf000129": "test2"
+      })
     };
 
     FacebookAudience
