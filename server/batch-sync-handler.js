@@ -15,12 +15,11 @@ export default class BatchSyncHandler {
   }
 
   static getHandler(args) {
-    const key = this.ns + args.ship.id;
+    const key = args.ship.id;
     return HANDLERS[key] = HANDLERS[key] || new BatchSyncHandler(args); // eslint-disable-line no-return-assign
   }
 
-  constructor({ ns = "", ship = {}, hull, options = {} }) {
-    this.ns = ns;
+  constructor({ ship = {}, hull, options = {} }) {
     this.ship = ship;
     this.hull = hull;
     this.messages = [];

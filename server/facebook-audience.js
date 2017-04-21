@@ -2,7 +2,6 @@ import Promise from "bluebird";
 import _ from "lodash";
 import fbgraph from "fbgraph";
 
-import HullAgent from "./util/hull-agent";
 import CAPABILITIES from "./capabilities";
 import CustomAudiences from "./lib/custom-audiences";
 import BatchSyncHandler from "./batch-sync-handler";
@@ -48,8 +47,8 @@ export default class FacebookAudience {
    * @return {Promise}
    */
   static handle(method) {
-    return ({ message }, { hull, ship, req }) => {
-      const handler = new FacebookAudience(ship, hull, req);
+    return ({ client, ship, helpers, segments, metric }, { message }) => {
+      const handler = new FacebookAudience(ship, client, helpers, segments, metric);
       if (!handler.isConfigured()) {
         const error = new Error("Missing credentials");
         error.status = 403;
@@ -63,10 +62,11 @@ export default class FacebookAudience {
    * Handles user Update
    * @param  {Object} options.message
    * @param  {Object} options.ship
-   * @param  {Object} options.hull
-   * @param  {Object} options.req
+   * @param  {Object} options.client
+   * @param  {Object} options.helpers
+   * @param  {Object} options.segments
    */
-  static handleUserUpdate({ message = {} }, { ship, hull, req }) {
+  static handleUserUpdate({ ship, client, helpers, segments, metric }, { message = {} }) {
     const { user, changes } = message;
 
     // Ignore if no changes on users' segments
@@ -75,7 +75,7 @@ export default class FacebookAudience {
     }
 
     // Agent instance
-    const agent = new FacebookAudience(ship, hull, req);
+    const agent = new FacebookAudience(ship, client, helpers, segments, metric);
 
     // Reduce payload to keep in memory
     const payload = {
@@ -90,7 +90,7 @@ export default class FacebookAudience {
     }
 
     return BatchSyncHandler.getHandler({
-      hull, ship,
+      client, ship,
       options: {
         maxSize: process.env.NOTIFY_BATCH_HANDLER_SIZE || 100,
         throttle: process.env.NOTIFY_BATCH_HANDLER_THROTTLE || 10000,
@@ -147,7 +147,7 @@ export default class FacebookAudience {
   sync() {
     return Promise.all([
       this.fetchAudiences(),
-      this.hullAgent.getSynchronizedSegments()
+      this.getSynchronizedSegments()
     ]).then(([audiences, segments]) => {
       return Promise.all(segments.map(segment => {
         return audiences[segment.id] || this.createAudience(segment);
@@ -155,16 +155,27 @@ export default class FacebookAudience {
     });
   }
 
-  constructor(ship, hull, req) {
-    this.ship = ship;
-    this.hull = hull;
-    this.req = req;
-    this.customAudiences = new CustomAudiences(ship, hull.logger);
-    this.hullAgent = new HullAgent(req);
+  getSynchronizedSegments() {
+    return Promise.resolve(this.segments)
+      .then(segments => {
+        const segmentSetting = _.get(this.ship.private_settings, "synchronized_segments", []).map(s => {
+          return { id: s };
+        });
+        return _.intersectionBy(segments, segmentSetting, "id");
+      });
   }
 
-  metric(metric, value = 1) {
-    FacebookAudience.instrumentationAgent.metricInc(metric, value, this.hull.configuration());
+  constructor(ship, client, helpers, segments, metric) {
+    this.ship = ship;
+    this.client = client;
+    this.customAudiences = new CustomAudiences(ship, client.logger);
+    this.helpers = helpers;
+    this.segments = segments;
+    this.metric = metric;
+  }
+
+  incMetric(metric, value = 1) {
+    this.metric.increment(metric, value);
   }
 
   getAccessToken() {
@@ -192,7 +203,7 @@ export default class FacebookAudience {
   }
 
   createAudience(segment, extract = true) {
-    this.metric("ship.audience.create");
+    this.incMetric("ship.audience.create");
     return this.fb("customaudiences", {
       subtype: "CUSTOM",
       retention_days: 180,
@@ -200,10 +211,8 @@ export default class FacebookAudience {
       name: `[Hull] ${segment.name}`
     }, "post").then(audience => {
       if (extract) {
-        this.hullAgent.extract.request({
-          format: "csv",
+        this.helpers.requestExtract({
           segment,
-          additionalQuery: { audience: audience && audience.id },
           fields: this.customAudiences.getExtractFields()
         });
       }
@@ -219,7 +228,7 @@ export default class FacebookAudience {
    * @return {Promise}
    */
   getOrCreateAudienceForSegment(segment) {
-    const synchronizedSegmentIds = _.get(this.hullAgent.getShipSettings(), "synchronized_segments", []);
+    const synchronizedSegmentIds = _.get(this.ship.private_settings, "synchronized_segments", []);
     if (!_.includes(synchronizedSegmentIds, segment.id)) {
       return Promise.resolve(null);
     }
@@ -240,12 +249,12 @@ export default class FacebookAudience {
   }
 
   removeUsersFromAudience(audienceId, users = []) {
-    this.hull.logger.info("removeUsersFromAudience", { audienceId, users: users.map(u => u.email) });
+    this.client.logger.info("removeUsersFromAudience", { audienceId, users: users.map(u => u.email) });
     return this.updateAudienceUsers(audienceId, users, "del");
   }
 
   addUsersToAudience(audienceId, users = []) {
-    this.hull.logger.info("addUsersToAudience", { audienceId, users: users.map(u => u.email) });
+    this.client.logger.info("addUsersToAudience", { audienceId, users: users.map(u => u.email) });
     return this.updateAudienceUsers(audienceId, users, "post");
   }
 
@@ -257,15 +266,15 @@ export default class FacebookAudience {
 
     const params = { payload };
     const action = method === "del" ? "remove" : "add";
-    this.metric("ship.outgoing.users", payload.data.length);
-    this.metric(`ship.outgoing.users.${action}`, payload.data.length);
-    this.hull.logger.debug("updateAudienceUsers", { audienceId, payload, method });
+    this.incMetric("ship.outgoing.users", payload.data.length);
+    this.incMetric(`ship.outgoing.users.${action}`, payload.data.length);
+    this.client.logger.debug("updateAudienceUsers", { audienceId, payload, method });
     return this.fb(`${audienceId}/users`, params, method);
   }
 
   fb(path, params = {}, method = "get") {
-    this.metric("ship.service_api.call");
-    fbgraph.setVersion("2.8");
+    this.incMetric("ship.service_api.call");
+    fbgraph.setVersion("2.9");
     const { accessToken, accountId } = this.getCredentials();
     if (!accessToken) {
       throw new Error("MissingCredentials");
@@ -284,8 +293,8 @@ export default class FacebookAudience {
       fbgraph[method](fullpath, fullparams, (err, result) => {
         let error;
         if (err) {
-          this.metric("ship.errors");
-          this.hull.logger.error("unauthorized", { method, fullpath, fullparams, err });
+          this.incMetric("ship.errors");
+          this.client.logger.error("unauthorized", { method, fullpath, fullparams, err });
           error = {
             ...err,
             fullpath, fullparams, accountId
