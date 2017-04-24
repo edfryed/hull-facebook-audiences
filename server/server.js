@@ -41,10 +41,5 @@ module.exports = function Server(options) {
 
   app.use("/admin", adminHandler({ connector, facebookAppSecret, facebookAppId }));
 
-  if (sentryDSN) {
-    app.use(raven.middleware.express.errorHandler(sentryDSN));
-  }
-
   return app;
-}
-;
+};

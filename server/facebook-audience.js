@@ -90,7 +90,7 @@ export default class FacebookAudience {
     }
 
     return BatchSyncHandler.getHandler({
-      client, ship,
+      ship,
       options: {
         maxSize: process.env.NOTIFY_BATCH_HANDLER_SIZE || 100,
         throttle: process.env.NOTIFY_BATCH_HANDLER_THROTTLE || 10000,
@@ -174,10 +174,6 @@ export default class FacebookAudience {
     this.metric = metric;
   }
 
-  incMetric(metric, value = 1) {
-    this.metric.increment(metric, value);
-  }
-
   getAccessToken() {
     return _.get(this.ship, "private_settings.facebook_access_token");
   }
@@ -203,7 +199,7 @@ export default class FacebookAudience {
   }
 
   createAudience(segment, extract = true) {
-    this.incMetric("ship.audience.create");
+    this.metric.increment("ship.audience.create", 1);
     return this.fb("customaudiences", {
       subtype: "CUSTOM",
       retention_days: 180,
@@ -266,14 +262,14 @@ export default class FacebookAudience {
 
     const params = { payload };
     const action = method === "del" ? "remove" : "add";
-    this.incMetric("ship.outgoing.users", payload.data.length);
-    this.incMetric(`ship.outgoing.users.${action}`, payload.data.length);
+    this.metric.increment("ship.outgoing.users", payload.data.length);
+    this.metric.increment(`ship.outgoing.users.${action}`, payload.data.length);
     this.client.logger.debug("updateAudienceUsers", { audienceId, payload, method });
     return this.fb(`${audienceId}/users`, params, method);
   }
 
   fb(path, params = {}, method = "get") {
-    this.incMetric("ship.service_api.call");
+    this.metric.increment("ship.service_api.call", 1);
     fbgraph.setVersion("2.9");
     const { accessToken, accountId } = this.getCredentials();
     if (!accessToken) {
@@ -293,7 +289,7 @@ export default class FacebookAudience {
       fbgraph[method](fullpath, fullparams, (err, result) => {
         let error;
         if (err) {
-          this.incMetric("ship.errors");
+          this.metric.increment("ship.errors", 1);
           this.client.logger.error("unauthorized", { method, fullpath, fullparams, err });
           error = {
             ...err,

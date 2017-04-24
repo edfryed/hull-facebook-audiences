@@ -19,9 +19,8 @@ export default class BatchSyncHandler {
     return HANDLERS[key] = HANDLERS[key] || new BatchSyncHandler(args); // eslint-disable-line no-return-assign
   }
 
-  constructor({ ship = {}, hull, options = {} }) {
+  constructor({ ship = {}, options = {} }) {
     this.ship = ship;
-    this.hull = hull;
     this.messages = [];
     this.options = options;
     this.callback = options.callback;
