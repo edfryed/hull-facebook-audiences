@@ -6,22 +6,24 @@
   "success_url": "/readme",
   "env": {
     "SECRET" : {
-      "description" : "A Secret key used to authenticate on Hull API",
+      "description" : "A Secret key used to authenticate on Hull API.",
       "generator" : "secret"
     },
     "FACEBOOK_APP_ID" : {
-      "description" : "Facebook App ID used to get an access token"
+      "description" : "Facebook App ID used to get an access token."
     },
     "FACEBOOK_APP_SECRET" : {
-      "description" : "Facebook App Secret used to get an access token"
-    },
-    "HOST": {
-      "description": "A hostname to be set in Datadog integration",
-      "required": false
+      "description" : "Facebook App Secret used to get an access token."
     },
     "LOG_LEVEL": {
-      "description": "Minimum level of system messages to be logged",
+      "description": "Minimum level of system messages to be logged.",
       "required": false
+    },
+    "SENTRY_DSN": {
+      "description": "Defines DSN entry."
+    },
+    "NEW_RELIC_LICENSE_KEY": {
+      "description": "License key for New Relic."
     }
   },
   "scripts": {}
