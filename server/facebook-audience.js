@@ -265,7 +265,7 @@ export default class FacebookAudience {
 
   fb(path, params = {}, method = "get") {
     this.metric("ship.service_api.call");
-    fbgraph.setVersion("2.8");
+    fbgraph.setVersion("2.9");
     const { accessToken, accountId } = this.getCredentials();
     if (!accessToken) {
       throw new Error("MissingCredentials");
