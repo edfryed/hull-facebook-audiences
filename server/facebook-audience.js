@@ -13,7 +13,6 @@ const ACCOUNT_FIELDS = [
   "name",
   "account_status",
   "owner",
-  "owner_business",
   "capabilities",
   "business",
   "user_role"
