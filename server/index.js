@@ -11,6 +11,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 if (process.env.LOG_LEVEL) {
   Hull.logger.transports.console.level = process.env.LOG_LEVEL;
 }
+Hull.logger.transports.console.stringify = true;
 
 
 const port = process.env.PORT || 8082;

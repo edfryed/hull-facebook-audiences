@@ -211,7 +211,10 @@ export default class FacebookAudience {
       if (extract) {
         this.helpers.requestExtract({
           segment,
-          fields: this.customAudiences.getExtractFields()
+          fields: this.customAudiences.getExtractFields(),
+          additionalQuery: {
+            audience: audience.id
+          }
         });
       }
       return Object.assign({ isNew: true }, audience);
