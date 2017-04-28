@@ -4,7 +4,6 @@ import fbgraph from "fbgraph";
 
 import CAPABILITIES from "./capabilities";
 import CustomAudiences from "./lib/custom-audiences";
-import BatchSyncHandler from "./batch-sync-handler";
 
 const ACCOUNT_FIELDS = [
   "id",
@@ -67,16 +66,18 @@ export default class FacebookAudience {
    * @param  {Object} options.segments
    */
   static handleUserUpdate({ ship, client, helpers, segments, metric }, { messages = [] }) {
-    Promise.all(messages.map(message => {
+    const agent = new FacebookAudience(ship, client, helpers, segments, metric);
+    const filteredMessages = messages.reduce((acc, message) => {
       const { user, changes } = message;
 
       // Ignore if no changes on users' segments
       if (!user.email || !changes || _.isEmpty(changes.segments)) {
-        return Promise.resolve();
+        client.logger.info("outgoing.user.skip", _.merge(
+          _.pick(user, "id", "external_id", "email"),
+          { reason: "no changes on users segments" }
+        ));
+        return acc;
       }
-
-      // Agent instance
-      const agent = new FacebookAudience(ship, client, helpers, segments, metric);
 
       // Reduce payload to keep in memory
       const payload = {
@@ -85,20 +86,17 @@ export default class FacebookAudience {
       };
 
       if (!agent.isConfigured()) {
-        const error = new Error("Missing credentials");
-        error.status = 403;
-        return Promise.reject(error);
+        client.logger.info("outgoing.user.skip", _.merge(
+          _.pick(user, "id", "external_id", "email"),
+          { reason: "connector is not configured" }
+        ));
+        return acc;
       }
 
-      return BatchSyncHandler.getHandler({
-        ship,
-        options: {
-          maxSize: process.env.NOTIFY_BATCH_HANDLER_SIZE || 100,
-          throttle: process.env.NOTIFY_BATCH_HANDLER_THROTTLE || 10000,
-          callback: FacebookAudience.flushUserUpdates.bind(this, agent)
-        }
-      }).add(payload);
-    }));
+      return acc.concat(payload);
+    }, []);
+
+    FacebookAudience.flushUserUpdates.call(this, agent, filteredMessages);
   }
 
   /**
@@ -270,7 +268,16 @@ export default class FacebookAudience {
     this.metric.increment("ship.outgoing.users", payload.data.length);
     this.metric.increment(`ship.outgoing.users.${action}`, payload.data.length);
     this.client.logger.debug("updateAudienceUsers", { audienceId, payload, method });
-    return this.fb(`${audienceId}/users`, params, method);
+    return this.fb(`${audienceId}/users`, params, method)
+      .then(() => {
+        _.map(users, (u) => {
+          this.client.logger.info("outgoing.user.success", _.pick(u, "id", "external_id", "email"));
+        });
+      }, () => {
+        _.map(users, (u) => {
+          this.client.logger.info("outgoing.user.error", _.pick(u, "id", "external_id", "email"));
+        });
+      });
   }
 
   fb(path, params = {}, method = "get") {
