@@ -22,4 +22,9 @@ End-Users: [See Readme here](https://dashboard.hullapp.io/readme?url=https://hul
 npm install -g gulp
 npm install
 gulp
+
+### Testing :
+- create facebook developer account
+- create sandbox ad: https://developers.facebook.com/ads/blog/post/2016/10/19/sandbox-ad-accounts/
+
 ```
