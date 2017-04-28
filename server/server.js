@@ -28,11 +28,9 @@ module.exports = function Server(options) {
    */
   /* for now batchHandler implementation will pass users strictly as second parameter but in the future
    it is going to be wrapped in messages array each message will contain user field with user's information, e.g. email  */
-  app.use("/batch", (req, res, next) => {
-    req.hull.query = req.query;
-    next();
-  }, batchHandler(({ client, ship, helpers, segments, metric, query }, users = []) => {
+  app.use("/batch", batchHandler(({ client, ship, helpers, segments, metric }, messages = [], { query }) => {
     const { audience } = query;
+    const users = messages.map(m => m.user);
     const fb = new FacebookAudience(ship, client, helpers, segments, metric);
     if (audience && users) {
       fb.addUsersToAudience(audience, users);
