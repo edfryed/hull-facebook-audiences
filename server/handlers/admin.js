@@ -1,3 +1,4 @@
+/* @flow */
 import { Router } from "express";
 import fbgraph from "fbgraph";
 import bodyParser from "body-parser";
@@ -5,7 +6,7 @@ import FacebookAudience from "../facebook-audience";
 import Promise from "bluebird";
 import _ from "lodash";
 
-export default function adminHander({ facebookAppSecret, facebookAppId }) {
+export default function adminHander({ facebookAppSecret, facebookAppId }: any) {
   function getAccessToken({ facebook_access_token, extendAccessToken }) {
     return new Promise((resolve, reject) => {
       if (extendAccessToken && facebook_access_token) {

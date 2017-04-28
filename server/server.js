@@ -1,3 +1,4 @@
+/* @flow */
 import raven from "raven";
 
 import { notifHandler, batchHandler } from "hull/lib/utils";
@@ -5,7 +6,7 @@ import { notifHandler, batchHandler } from "hull/lib/utils";
 import FacebookAudience from "./facebook-audience";
 import adminHandler from "./handlers/admin";
 
-module.exports = function Server(options) {
+module.exports = function Server(options: any) {
   const { connector, app, facebookAppId, facebookAppSecret, sentryDSN } = options;
 
   if (sentryDSN) {
@@ -27,7 +28,7 @@ module.exports = function Server(options) {
    * Handles batches. Only those which are sent with additional audience param - so ones requested from the ship.
    */
   /* for now batchHandler implementation will pass users strictly as second parameter but in the future
-   it is going to be wrapped in messages array each message will contain user field with user's information, e.g. email  */
+   it is going to be wrapped in messages array. Each message will contain user field with user's information, e.g. email  */
   app.use("/batch", (req, res, next) => {
     req.hull.query = req.query;
     next();

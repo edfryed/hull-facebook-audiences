@@ -26,10 +26,10 @@
     "clean": "./node_modules/.bin/rimraf dist; ./node_modules/.bin/rimraf build",
     "start": "node ./build",
     "start:dev": "NODE_ENV=development babel-watch -L server",
-    "test": "npm run test:lint && npm run test:units",
+    "test": "npm run test:lint && npm run test:units && npm run test:flow",
     "test:lint": "./node_modules/.bin/eslint server",
-    "test:modules": "npm outdated --depth=0",
-    "test:units": "NODE_ENV=test ./node_modules/.bin/mocha -R spec ./tests/index",
+    "test:units": "NODE_ENV=test mocha -R spec ./tests/index",
+    "test:flow": "flow check",
     "watch": "./node_modules/.bin/watch 'clear && npm run test:lint -s && npm run test:units -s' server src",
     "postinstall": "npm run build"
   },
@@ -64,6 +64,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^6.1.0",
+    "babel-preset-flow": "^6.23.0",
     "babel-watch": "^2.0.5",
     "eslint": "^2.13.1",
     "eslint-config-airbnb-base": "^3.0.1",

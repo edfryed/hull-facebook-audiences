@@ -66,37 +66,39 @@ export default class FacebookAudience {
    * @param  {Object} options.helpers
    * @param  {Object} options.segments
    */
-  static handleUserUpdate({ ship, client, helpers, segments, metric }, { message = {} }) {
-    const { user, changes } = message;
+  static handleUserUpdate({ ship, client, helpers, segments, metric }, { messages = [] }) {
+    Promise.all(messages.map(message => {
+      const { user, changes } = message;
 
-    // Ignore if no changes on users' segments
-    if (!user.email || !changes || _.isEmpty(changes.segments)) {
-      return false;
-    }
-
-    // Agent instance
-    const agent = new FacebookAudience(ship, client, helpers, segments, metric);
-
-    // Reduce payload to keep in memory
-    const payload = {
-      user: _.pick(user, agent.customAudiences.getExtractFields()),
-      changes: _.pick(changes, "segments")
-    };
-
-    if (!agent.isConfigured()) {
-      const error = new Error("Missing credentials");
-      error.status = 403;
-      return Promise.reject(error);
-    }
-
-    return BatchSyncHandler.getHandler({
-      ship,
-      options: {
-        maxSize: process.env.NOTIFY_BATCH_HANDLER_SIZE || 100,
-        throttle: process.env.NOTIFY_BATCH_HANDLER_THROTTLE || 10000,
-        callback: FacebookAudience.flushUserUpdates.bind(this, agent)
+      // Ignore if no changes on users' segments
+      if (!user.email || !changes || _.isEmpty(changes.segments)) {
+        return Promise.resolve();
       }
-    }).add(payload);
+
+      // Agent instance
+      const agent = new FacebookAudience(ship, client, helpers, segments, metric);
+
+      // Reduce payload to keep in memory
+      const payload = {
+        user: _.pick(user, agent.customAudiences.getExtractFields()),
+        changes: _.pick(changes, "segments")
+      };
+
+      if (!agent.isConfigured()) {
+        const error = new Error("Missing credentials");
+        error.status = 403;
+        return Promise.reject(error);
+      }
+
+      return BatchSyncHandler.getHandler({
+        ship,
+        options: {
+          maxSize: process.env.NOTIFY_BATCH_HANDLER_SIZE || 100,
+          throttle: process.env.NOTIFY_BATCH_HANDLER_THROTTLE || 10000,
+          callback: FacebookAudience.flushUserUpdates.bind(this, agent)
+        }
+      }).add(payload);
+    }));
   }
 
   /**
