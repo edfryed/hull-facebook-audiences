@@ -27,12 +27,9 @@ export default function adminHander({ facebookAppSecret, facebookAppId }: any) {
     const { facebook_ad_account_id } = params;
     return getAccessToken(params)
       .then(facebook_access_token => {
-        return client.put(ship.id, {
-          private_settings: {
-            ...ship.private_settings,
-            facebook_access_token,
-            facebook_ad_account_id
-          }
+        return helpers.updateSettings({
+          facebook_access_token,
+          facebook_ad_account_id
         });
       })
       .then(updatedShip => {

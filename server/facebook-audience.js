@@ -145,10 +145,9 @@ export default class FacebookAudience {
    * @return {Promise}
    */
   sync() {
-    return Promise.all([
-      this.fetchAudiences(),
-      this.getSynchronizedSegments()
-    ]).then(([audiences, segments]) => {
+    const segments = this.getSynchronizedSegments();
+    return this.fetchAudiences()
+      .then((audiences) => {
       return Promise.all(segments.map(segment => {
         return audiences[segment.id] || this.createAudience(segment);
       }));
@@ -156,13 +155,10 @@ export default class FacebookAudience {
   }
 
   getSynchronizedSegments() {
-    return Promise.resolve(this.segments)
-      .then(segments => {
-        const segmentSetting = _.get(this.ship.private_settings, "synchronized_segments", []).map(s => {
-          return { id: s };
-        });
-        return _.intersectionBy(segments, segmentSetting, "id");
-      });
+    const segmentSetting = _.get(this.ship.private_settings, "synchronized_segments", []).map(s => {
+      return { id: s };
+    });
+    return _.intersectionBy(this.segments, segmentSetting, "id");
   }
 
   constructor(ship, client, helpers, segments, metric) {
