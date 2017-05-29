@@ -73,7 +73,6 @@ export default class CustomAudiences {
             value = this[`normalize${_.upperFirst(fbKey.toLowerCase())}`](value);
           }
           value = _.trim(value).toLowerCase();
-          this.logger.debug(fbKey, value);
           userData.push(this.hashValue(value));
         }
       });
@@ -84,15 +83,21 @@ export default class CustomAudiences {
   }
 
   normalizeFn(value) {
-    return value.replace(/[^a-z\s\u00C0-\u017F+]+/gi, "");
+    return _.isString(value)
+      ? value.replace(/[^a-z\s\u00C0-\u017F+]+/gi, "")
+      : "";
   }
 
   normalizeLn(value) {
-    return value.replace(/[^a-z\s\u00C0-\u017F+]+/gi, "");
+    return _.isString(value)
+      ? value.replace(/[^a-z\s\u00C0-\u017F+]+/gi, "")
+      : "";
   }
 
   normalizeCt(value) {
-    return value.replace(/[^a-z\s\u00C0-\u017F+]+/gi, "");
+    return _.isString(value)
+      ? value.replace(/[^a-z\s\u00C0-\u017F+]+/gi, "")
+      : "";
   }
 
   /**
@@ -101,7 +106,7 @@ export default class CustomAudiences {
    * @return {String}
    */
   normalizePhone(value) {
-    return _.trimStart(value.replace(/[^0-9\s+]+/gi, ""), "0");
+    return _.trimStart((value || "").replace(/[^0-9\s+]+/gi, ""), "0");
   }
 
   /**

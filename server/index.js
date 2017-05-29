@@ -1,33 +1,37 @@
-if (process.env.NEW_RELIC_LICENSE_KEY) {
-  require("newrelic"); // eslint-disable-line global-require
-}
+/* @flow */
+import Hull from "hull";
+import { Cache } from "hull/lib/infra";
+import redisStore from "cache-manager-redis-store";
+import express from "express";
 
-const Hull = require("hull");
-const Server = require("./server");
-const BatchSyncHandler = require("./batch-sync-handler").default;
+import server from "./server";
 
 if (process.env.LOG_LEVEL) {
   Hull.logger.transports.console.level = process.env.LOG_LEVEL;
 }
 
-function exitNow() {
-  console.warn("Exiting now !");
-  process.exit(0);
+let cache;
+
+if (process.env.CACHE_REDIS_URL) {
+  cache = new Cache({
+    store: redisStore,
+    url: process.env.CACHE_REDIS_URL,
+    ttl: process.env.SHIP_CACHE_TTL || 180
+  });
 }
 
-function handleExit() {
-  console.log("Exiting... waiting 30 seconds workers to flush");
-  setTimeout(exitNow, 30000);
-  BatchSyncHandler.exit().then(exitNow);
-}
+const port = process.env.PORT || 8082;
+const hostSecret = process.env.SECRET;
 
-process.on("SIGINT", handleExit);
-process.on("SIGTERM", handleExit);
+const connector = new Hull.Connector({ port, hostSecret, cache });
 
-Server({
-  Hull,
+const app = express();
+connector.setupApp(app);
+
+server(app, {
+  connector,
   facebookAppId: process.env.FACEBOOK_APP_ID,
   facebookAppSecret: process.env.FACEBOOK_APP_SECRET,
-  port: process.env.PORT || 8082,
-  sentryDSN: process.env.SENTRY_DSN
 });
+
+connector.startApp(app);
