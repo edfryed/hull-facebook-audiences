@@ -5,8 +5,8 @@ import { notifHandler, batchHandler } from "hull/lib/utils";
 import FacebookAudience from "./lib/facebook-audience";
 import adminHandler from "./handlers/admin";
 
-export default function server(app: express, options: any): express {
-  const { connector, facebookAppId, facebookAppSecret } = options;
+export default function server(app: express, dependencies: any): express {
+  const { connector, facebookAppId, facebookAppSecret } = dependencies;
 
   app.use("/notify", notifHandler({
     userHandlerOptions: {
@@ -22,8 +22,8 @@ export default function server(app: express, options: any): express {
   /**
    * Handles batches. Only those which are sent with additional audience param - so ones requested from the ship.
    */
-  app.use("/batch", batchHandler(({ client, ship, helpers, segments, metric }, messages = [], { query }) => {
-    const { audience } = query;
+  app.use("/batch", batchHandler(({ client, ship, helpers, segments, metric, options }, messages = []) => {
+    const { audience } = options;
     const users = messages.map(m => m.user);
     const fb = new FacebookAudience(ship, client, helpers, segments, metric);
     if (audience && users) {
