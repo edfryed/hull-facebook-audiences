@@ -1,16 +1,12 @@
-import raven from "raven";
+import express from "express";
 
 import { notifHandler, batchHandler } from "hull/lib/utils";
 
-import FacebookAudience from "./facebook-audience";
+import FacebookAudience from "./lib/facebook-audience";
 import adminHandler from "./handlers/admin";
 
-module.exports = function Server(options: any) {
-  const { connector, app, facebookAppId, facebookAppSecret, sentryDSN } = options;
-
-  if (sentryDSN) {
-    app.use(raven.middleware.express.requestHandler(sentryDSN));
-  }
+export default function server(app: express, options: any): express {
+  const { connector, facebookAppId, facebookAppSecret } = options;
 
   app.use("/notify", notifHandler({
     userHandlerOptions: {
@@ -40,4 +36,4 @@ module.exports = function Server(options: any) {
   app.use("/admin", adminHandler({ connector, facebookAppSecret, facebookAppId }));
 
   return app;
-};
+}

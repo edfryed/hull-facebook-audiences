@@ -2,7 +2,7 @@
 import { Router } from "express";
 import fbgraph from "fbgraph";
 import bodyParser from "body-parser";
-import FacebookAudience from "../facebook-audience";
+import FacebookAudience from "../lib/facebook-audience";
 import Promise from "bluebird";
 import _ from "lodash";
 
@@ -23,7 +23,7 @@ export default function adminHander({ facebookAppSecret, facebookAppId }: any) {
     });
   }
 
-  function updateSettings({ client, ship, helpers, segments, metric, params }) {
+  function updateSettings({ client, helpers, segments, metric, params }) {
     const { facebook_ad_account_id } = params;
     return getAccessToken(params)
       .then(facebook_access_token => {

@@ -3,7 +3,7 @@ import _ from "lodash";
 import fbgraph from "fbgraph";
 
 import CAPABILITIES from "./capabilities";
-import CustomAudiences from "./lib/custom-audiences";
+import CustomAudiences from "./custom-audiences";
 
 const ACCOUNT_FIELDS = [
   "id",
@@ -148,10 +148,10 @@ export default class FacebookAudience {
     const segments = this.getSynchronizedSegments();
     return this.fetchAudiences()
       .then((audiences) => {
-      return Promise.all(segments.map(segment => {
-        return audiences[segment.id] || this.createAudience(segment);
-      }));
-    });
+        return Promise.all(segments.map(segment => {
+          return audiences[segment.id] || this.createAudience(segment);
+        }));
+      });
   }
 
   getSynchronizedSegments() {
