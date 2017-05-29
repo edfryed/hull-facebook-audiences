@@ -1,11 +1,9 @@
 import Promise from "bluebird";
 import _ from "lodash";
-import URI from "urijs";
-import crypto from "crypto";
 import fbgraph from "fbgraph";
-import CAPABILITIES from "./capabilities";
 
-import BatchSyncHandler from "./batch-sync-handler";
+import CAPABILITIES from "./capabilities";
+import CustomAudiences from "./custom-audiences";
 
 const ACCOUNT_FIELDS = [
   "id",
@@ -43,9 +41,13 @@ const AUDIENCE_FIELDS = [
 
 export default class FacebookAudience {
 
+  /**
+   * @param  {String} method supports `handleSegmentUpdate` and `handleSegmentDelete`
+   * @return {Promise}
+   */
   static handle(method) {
-    return ({ message }, { hull, ship, req }) => {
-      const handler = new FacebookAudience(ship, hull, req);
+    return ({ client, ship, helpers, segments, metric }, { message }) => {
+      const handler = new FacebookAudience(ship, client, helpers, segments, metric);
       if (!handler.isConfigured()) {
         const error = new Error("Missing credentials");
         error.status = 403;
@@ -55,87 +57,116 @@ export default class FacebookAudience {
     };
   }
 
-  static handleUserUpdate({ message = {} }, { ship, hull, req }) {
-    const { user, changes } = message;
-
-    // Ignore if no changes on users' segments
-    if (!user.email || !changes || _.isEmpty(changes.segments)) {
-      return false;
-    }
-
-    // Reduce payload to keep in memory
-    const payload = {
-      user: _.pick(user, "email"),
-      changes: _.pick(changes, "segments")
-    };
-
-    // Agent instance
-    const agent = new FacebookAudience(ship, hull, req);
-
-    if (!agent.isConfigured()) {
-      const error = new Error("Missing credentials");
-      error.status = 403;
-      return Promise.reject(error);
-    }
-
-    return BatchSyncHandler.getHandler({
-      hull, ship,
-      options: {
-        maxSize: process.env.NOTIFY_BATCH_HANDLER_SIZE || 100,
-        throttle: process.env.NOTIFY_BATCH_HANDLER_THROTTLE || 10000,
-        callback: FacebookAudience.flushUserUpdates.bind(this, agent)
+  /**
+   * Handles user Update
+   * @param  {Object} options.message
+   * @param  {Object} options.ship
+   * @param  {Object} options.client
+   * @param  {Object} options.helpers
+   * @param  {Object} options.segments
+   */
+  static handleUserUpdate({ ship, client, helpers, segments, metric }, messages = []) {
+    const agent = new FacebookAudience(ship, client, helpers, segments, metric);
+    const filteredMessages = messages.reduce((acc, message) => {
+      const { user, changes } = message;
+      // Ignore if no changes on users' segments
+      if (!user.email || !changes || _.isEmpty(changes.segments)) {
+        client.logger.info("outgoing.user.skip", _.merge(
+          _.pick(user, "id", "external_id", "email"),
+          { reason: "no changes on users segments" }
+        ));
+        return acc;
       }
-    }).add(payload);
+
+      // Reduce payload to keep in memory
+      const payload = {
+        user: _.pick(user, agent.customAudiences.getExtractFields()),
+        changes: _.pick(changes, "segments")
+      };
+
+      if (!agent.isConfigured()) {
+        client.logger.info("outgoing.user.skip", _.merge(
+          _.pick(user, "id", "external_id", "email"),
+          { reason: "connector is not configured" }
+        ));
+        return acc;
+      }
+
+      return acc.concat(payload);
+    }, []);
+
+    FacebookAudience.flushUserUpdates.call(this, agent, filteredMessages);
   }
 
+  /**
+   * Performs actions on users grouped by `handleUserUpdate` method.
+   * It only works on segments saved in `synchronized_segments` setting
+   * @param  {Object} agent     instance of FacebookAudience
+   * @param  {Object} messages
+   * @return {Promise}
+   */
   static flushUserUpdates(agent, messages) {
+    let segments = [];
     const operations = messages.reduce((ops, { user, changes }) => {
       if (changes && changes.segments) {
         const { entered, left } = changes.segments;
+        segments = _.union(segments, entered, left);
         (entered || []).forEach(segment => {
           ops[segment.id] = ops[segment.id] || { segment, entered: [], left: [] };
-          ops[segment.id].entered.push(_.pick(user, "id", "email"));
+          ops[segment.id].entered.push(user);
         });
         (left || []).forEach(segment => {
           ops[segment.id] = ops[segment.id] || { segment, entered: [], left: [] };
-          ops[segment.id].left.push(_.pick(user, "id", "email"));
+          ops[segment.id].left.push(user);
         });
       }
       return ops;
     }, {});
 
-    return Promise.all(_.map(operations, ({ segment, entered, left }) => {
-      return agent.getOrCreateAudienceForSegment(segment).then(audience => {
-        if (left.length > 0) agent.removeUsersFromAudience(audience.id, left);
-        if (entered.length > 0) agent.addUsersToAudience(audience.id, entered);
-        return { audience, segment, entered, left };
+    return Promise.all(segments.map(s => agent.getOrCreateAudienceForSegment(s)))
+      .then(() => agent.fetchAudiences())
+      .then(audiences => {
+        return Promise.all(_.map(operations, ({ segment, entered, left }) => {
+          const audience = audiences[segment.id];
+          if (!audience || !_.includes(agent.ship.private_settings.synchronized_segments, segment.id)) {
+            return {};
+          }
+          if (left.length > 0) agent.removeUsersFromAudience(audience.id, left);
+          if (entered.length > 0) agent.addUsersToAudience(audience.id, entered);
+          return { audience, segment, entered, left };
+        }));
       });
-    }));
   }
 
-  static sync(ship, hull, req) {
-    return new FacebookAudience(ship, hull, req).sync();
-  }
-
+  /**
+   * Makes sure that the all synchronized segments have corresponding Custom Audiences.
+   * While creating new ones, it will requests extracts for them.
+   * @return {Promise}
+   */
   sync() {
-    return Promise.all([
-      this.fetchAudiences(),
-      this.hull.get("segments", { limit: 500 })
-    ]).then(([audiences, segments]) => {
-      return Promise.all(segments.map(segment => {
-        return audiences[segment.id] || this.createAudience(segment);
-      }));
+    const segments = this.getSynchronizedSegments();
+    return this.fetchAudiences()
+      .then((audiences) => {
+        return Promise.all(segments.map(segment => {
+          return audiences[segment.id] || this.createAudience(segment);
+        }));
+      });
+  }
+
+  getSynchronizedSegments() {
+    const segmentSetting = _.get(this.ship.private_settings, "synchronized_segments", []).map(s => {
+      return { id: s };
     });
+    return _.intersectionBy(this.segments, segmentSetting, "id");
   }
 
-  constructor(ship, hull, req) {
+  constructor(ship, client, helpers, segments, metric) {
     this.ship = ship;
-    this.hull = hull;
-    this.req = req;
-  }
-
-  metric(metric, value = 1) {
-    this.hull.utils.metric(metric, value);
+    this.client = client;
+    this.customAudiences = new CustomAudiences(ship, client.logger);
+    this.helpers = helpers;
+    this.segments = segments;
+    this.metric = metric;
   }
 
   getAccessToken() {
@@ -163,41 +194,40 @@ export default class FacebookAudience {
   }
 
   createAudience(segment, extract = true) {
-    this.metric("audience.create");
+    this.metric.increment("ship.audience.create", 1);
     return this.fb("customaudiences", {
       subtype: "CUSTOM",
       retention_days: 180,
       description: segment.id,
       name: `[Hull] ${segment.name}`
     }, "post").then(audience => {
-      if (extract) this.requestExtract({ segment, audience });
+      if (extract) {
+        this.helpers.requestExtract({
+          segment,
+          fields: this.customAudiences.getExtractFields(),
+          additionalQuery: {
+            audience: audience.id
+          }
+        });
+      }
       return Object.assign({ isNew: true }, audience);
     });
   }
 
+  /**
+   * Creates or returns information about Facebook Audience matching provided segment.
+   * In case it gets segment which is not included in the `synchronized_segments`
+   * setting it will return null
+   * @param  {Object} segment
+   * @return {Promise}
+   */
   getOrCreateAudienceForSegment(segment) {
+    const synchronizedSegmentIds = _.get(this.ship.private_settings, "synchronized_segments", []);
+    if (!_.includes(synchronizedSegmentIds, segment.id)) {
+      return Promise.resolve(null);
+    }
     return this.fetchAudiences().then(audiences => {
       return audiences[segment.id] || this.createAudience(segment);
-    });
-  }
-
-  handleUserUpdate({ user, changes }) {
-    if (changes && changes.segments) {
-      const { entered, left } = changes.segments;
-      (entered || []).map(this.handleUserEnteredSegment.bind(this, user));
-      (left || []).map(this.handleUserLeftSegment.bind(this, user));
-    }
-  }
-
-  handleUserEnteredSegment(user, segment) {
-    return this.getOrCreateAudienceForSegment(segment).then(audience => {
-      return this.addUsersToAudience(audience.id, [user]);
-    });
-  }
-
-  handleUserLeftSegment(user, segment) {
-    return this.getOrCreateAudienceForSegment(segment).then(audience => {
-      return this.removeUsersFromAudience(audience.id, [user]);
     });
   }
 
@@ -212,56 +242,41 @@ export default class FacebookAudience {
     });
   }
 
-  requestExtract({ segment, audience, format = "csv" }) {
-    const search = Object.assign({}, this.req.query, {
-      segment: segment.id,
-      audience: audience && audience.id
-    });
-
-    const url = URI(`https://${this.req.hostname}`)
-      .path("batch")
-      .search(search)
-      .toString();
-
-    return this.hull.get(segment.id).then(({ query }) => {
-      return this.hull.post("extract/user_reports", {
-        format, query, url,
-        fields: ["id", "email", "name"]
-      });
-    });
-  }
-
-  log(msg, data = {}) {
-    console.warn(msg, { ship: this.ship.id }, JSON.stringify(data));
-  }
-
   removeUsersFromAudience(audienceId, users = []) {
-    this.log("removeUsersFromAudience", { audienceId, users: users.map(u => u.email) });
+    this.client.logger.info("removeUsersFromAudience", { audienceId, users: users.map(u => u.email) });
     return this.updateAudienceUsers(audienceId, users, "del");
   }
 
   addUsersToAudience(audienceId, users = []) {
-    this.log("addUsersToAudience", { audienceId, users: users.map(u => u.email) });
+    this.client.logger.info("addUsersToAudience", { audienceId, users: users.map(u => u.email) });
     return this.updateAudienceUsers(audienceId, users, "post");
   }
 
   updateAudienceUsers(audienceId, users, method) {
-    const data = _.compact((users || []).map(({ email }) => {
-      return email && crypto.createHash("sha256")
-                    .update(email)
-                    .digest("hex");
-    }));
-    if (_.isEmpty(data)) {
+    const payload = this.customAudiences.buildCustomAudiencePayload(_.compact((users || [])));
+    if (_.isEmpty(payload.data)) {
       return Promise.resolve({ data: [] });
     }
-    const schema = "EMAIL_SHA256";
-    const params = { payload: { schema, data } };
+
+    const params = { payload };
     const action = method === "del" ? "remove" : "add";
-    this.metric(`audience.users.${action}`, data.length);
-    return this.fb(`${audienceId}/users`, params, method);
+    this.metric.increment("ship.outgoing.users", payload.data.length);
+    this.metric.increment(`ship.outgoing.users.${action}`, payload.data.length);
+    this.client.logger.debug("updateAudienceUsers", { audienceId, payload, method });
+    return this.fb(`${audienceId}/users`, params, method)
+      .then(() => {
+        _.map(users, (u) => {
+          this.client.logger.info("outgoing.user.success", _.pick(u, "id", "external_id", "email"));
+        });
+      }, () => {
+        _.map(users, (u) => {
+          this.client.logger.info("outgoing.user.error", _.pick(u, "id", "external_id", "email"));
+        });
+      });
   }
 
   fb(path, params = {}, method = "get") {
+    this.metric.increment("ship.service_api.call", 1);
     fbgraph.setVersion("2.9");
     const { accessToken, accountId } = this.getCredentials();
     if (!accessToken) {
@@ -281,8 +296,8 @@ export default class FacebookAudience {
       fbgraph[method](fullpath, fullparams, (err, result) => {
         let error;
         if (err) {
-          this.metric("errors");
-          this.log("unauthorized", { method, fullpath, fullparams, err });
+          this.metric.increment("ship.errors", 1);
+          this.client.logger.error("unauthorized", { method, fullpath, fullparams, err });
           error = {
             ...err,
             fullpath, fullparams, accountId

@@ -1,7 +1,7 @@
 {
   "name": "hull-facebook-audiences",
   "description": "Sync Hull Segments with Facebook Custom Audiences",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "homepage": "https://github.com/hull-ships/hull-facebook-audiences",
   "license": "MIT",
   "author": {
@@ -25,11 +25,11 @@
     "build:server": "./node_modules/.bin/babel server -d build",
     "clean": "./node_modules/.bin/rimraf dist; ./node_modules/.bin/rimraf build",
     "start": "node ./build",
-    "start:dev": "NODE_ENV=development ./node_modules/.bin/nodemon -d 2 -V -w server -x ./node_modules/.bin/babel-node -- server",
-    "test": "npm run test:lint && npm run test:units",
+    "start:dev": "NODE_ENV=development babel-watch -L server",
+    "test": "npm run test:lint && npm run test:units && npm run test:flow",
     "test:lint": "./node_modules/.bin/eslint server",
-    "test:modules": "npm outdated --depth=0",
-    "test:units": "NODE_ENV=test ./node_modules/.bin/mocha -R spec ./tests/index",
+    "test:units": "NODE_ENV=test mocha -R spec ./tests/index",
+    "test:flow": "flow check",
     "watch": "./node_modules/.bin/watch 'clear && npm run test:lint -s && npm run test:units -s' server src",
     "postinstall": "npm run build"
   },
@@ -43,28 +43,30 @@
     "babel-cli": "^6.10.1",
     "babel-loader": "^6.2.4",
     "babel-preset-es2015": "^6.9.0",
+    "babel-preset-flow": "^6.23.0",
     "babel-preset-stage-0": "^6.5.0",
     "babel-register": "^6.9.0",
     "bluebird": "^3.3.4",
-    "ejs": "^2.4.1",
+    "cache-manager-redis-store": "^1.2.0",
+    "country-data": "0.0.31",
     "express": "^4.14.0",
     "fbgraph": "^1.2.0",
-    "hull": "0.7.4",
-    "librato-node": "^4.1.0",
+    "hull": "^0.11.2",
     "lodash": "^4.13.1",
     "newrelic": "^1.29.0",
-    "raven": "^0.11.0",
     "rimraf": "^2.4.3",
-    "sinon": "^1.17.6",
     "urijs": "^1.17.1"
   },
   "devDependencies": {
-    "mocha": "^2.5.3",
     "babel-eslint": "^6.1.0",
+    "babel-watch": "^2.0.5",
     "eslint": "^2.13.1",
     "eslint-config-airbnb-base": "^3.0.1",
     "eslint-plugin-import": "^1.9.2",
     "estraverse-fb": "^1.3.1",
-    "nodemon": "^1.9.2"
+    "flow-bin": "^0.45.0",
+    "mocha": "^2.5.3",
+    "sinon": "^1.17.6",
+    "webpack": "^1.14.0"
   }
 }

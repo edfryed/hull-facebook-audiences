@@ -1,10 +1,12 @@
+/* @flow */
 import { Router } from "express";
 import fbgraph from "fbgraph";
 import bodyParser from "body-parser";
-import FacebookAudience from "../facebook-audience";
+import FacebookAudience from "../lib/facebook-audience";
+import Promise from "bluebird";
 import _ from "lodash";
 
-export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) {
+export default function adminHander({ facebookAppSecret, facebookAppId }: any) {
   function getAccessToken({ facebook_access_token, extendAccessToken }) {
     return new Promise((resolve, reject) => {
       if (extendAccessToken && facebook_access_token) {
@@ -21,26 +23,24 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
     });
   }
 
-  function updateSettings({ hull, ship, params, req }) {
+  function updateSettings({ client, helpers, segments, metric, params }) {
     const { facebook_ad_account_id } = params;
     return getAccessToken(params)
       .then(facebook_access_token => {
-        return hull.put(ship.id, {
-          private_settings: {
-            ...ship.private_settings,
-            facebook_access_token,
-            facebook_ad_account_id
-          }
+        return helpers.updateSettings({
+          facebook_access_token,
+          facebook_ad_account_id
         });
       })
       .then(updatedShip => {
-        const fb = new FacebookAudience(updatedShip, hull, req);
+        const fb = new FacebookAudience(updatedShip, client, helpers, segments, metric);
         return fb.isConfigured()
-          && fb.sync(ship, hull, req);
+          && fb.sync();
       });
   }
 
   function handleError(context, err = {}) {
+    console.error(err);
     if (err.type === "OAuthException" && (err.code === 100 || err.code === 190)) {
       this.render("login.html", context);
     } else {
@@ -59,13 +59,13 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
 
   const app = Router();
 
-  app.use(Hull.Middlewares.hullClient({ cacheShip: false }));
+  app.use(bodyParser.urlencoded({ extended: true }));
 
-  app.post("/", bodyParser.urlencoded({ extended: true }), (req, res) => {
+  app.post("/", (req, res) => {
     const params = req.body;
-    const { client: hull, ship } = req.hull;
+    const { client, ship, helpers, segments, metric } = req.hull;
     const context = { query: req.query, search: req.search, facebookAppId, ship };
-    return updateSettings({ hull, ship, params, req })
+    return updateSettings({ client, ship, helpers, segments, metric, params })
       .then(
         () => {
           res.redirect("back");
@@ -74,12 +74,12 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
       .catch(handleError.bind(res, context));
   });
 
-  app.post("/sync", bodyParser.urlencoded({ extended: true }), (req, res) => {
-    const { client: hull, ship } = req.hull;
+  app.post("/sync", (req, res) => {
+    const { client, ship, helpers, segments, metric } = req.hull;
     const context = { query: req.query, facebookAppId, ship };
-    const fb = new FacebookAudience(ship, hull, req);
+    const fb = new FacebookAudience(ship, client, helpers, segments, metric);
     if (fb.isConfigured()) {
-      return fb.sync(ship, hull, req).then(
+      return fb.sync().then(
         () => res.redirect("back")
       ).catch(handleError.bind(res, context));
     }
@@ -88,8 +88,8 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
   });
 
   app.get("/", (req, res) => {
-    const { ship, client: hull } = req.hull || {};
-    const fb = new FacebookAudience(ship, hull, req);
+    const { ship, client, helpers, segments, metric } = req.hull || {};
+    const fb = new FacebookAudience(ship, client, helpers, segments, metric);
 
     const { accessToken, accountId } = fb.getCredentials();
     const context = { fb, url: req.url, query: req.query, facebookAppId };
@@ -102,9 +102,21 @@ export default function adminHander({ Hull, facebookAppSecret, facebookAppId }) 
        .then(accounts => res.render("accounts.html", { ...context, accounts }))
        .catch(handleError.bind(res, context));
     } else {
-      fb.fetchAudiences()
-        .then(audiences => res.render("audiences.html", { ...context, audiences: _.values(audiences) }))
-        .catch(handleError.bind(res, context));
+      Promise.all([
+        fb.fetchAudiences(),
+        fb.client.get("segments", { limit: 500 }),
+        fb.getSynchronizedSegments()
+      ])
+      .spread((audiences, segmentsToSpread, synchronizedSegments) => {
+        return res.render("audiences.html", {
+          ...context,
+          audiences,
+          segments: segmentsToSpread,
+          synchronizedSegments,
+          _
+        });
+      })
+      .catch(handleError.bind(res, context));
     }
   });
 
