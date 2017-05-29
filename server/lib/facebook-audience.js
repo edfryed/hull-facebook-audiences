@@ -65,11 +65,10 @@ export default class FacebookAudience {
    * @param  {Object} options.helpers
    * @param  {Object} options.segments
    */
-  static handleUserUpdate({ ship, client, helpers, segments, metric }, { messages = [] }) {
+  static handleUserUpdate({ ship, client, helpers, segments, metric }, messages = []) {
     const agent = new FacebookAudience(ship, client, helpers, segments, metric);
     const filteredMessages = messages.reduce((acc, message) => {
       const { user, changes } = message;
-
       // Ignore if no changes on users' segments
       if (!user.email || !changes || _.isEmpty(changes.segments)) {
         client.logger.info("outgoing.user.skip", _.merge(
