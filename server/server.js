@@ -1,11 +1,13 @@
+// @flow
 import express from "express";
+import Promise from "bluebird";
 
 import { notifHandler, batchHandler } from "hull/lib/utils";
 
 import FacebookAudience from "./lib/facebook-audience";
 import adminHandler from "./handlers/admin";
 
-export default function server(app: express, dependencies: any): express {
+export default function server(app: express, dependencies: Object): express {
   const { connector, facebookAppId, facebookAppSecret } = dependencies;
 
   app.use("/notify", notifHandler({
@@ -27,8 +29,9 @@ export default function server(app: express, dependencies: any): express {
     const users = messages.map(m => m.user);
     const fb = new FacebookAudience(ship, client, helpers, segments, metric);
     if (audience && users) {
-      fb.addUsersToAudience(audience, users);
+      return fb.addUsersToAudience(audience, users);
     }
+    return Promise.resolve();
   }, {
     groupTraits: false
   }));
