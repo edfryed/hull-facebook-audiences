@@ -1,7 +1,7 @@
 {
   "name": "hull-facebook-audiences",
   "description": "Sync Hull Segments with Facebook Custom Audiences",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/hull-ships/hull-facebook-audiences",
   "license": "MIT",
   "author": {
@@ -51,7 +51,7 @@
     "country-data": "0.0.31",
     "express": "^4.14.0",
     "fbgraph": "^1.2.0",
-    "hull": "^0.11.2",
+    "hull": "^0.11.4",
     "lodash": "^4.13.1",
     "newrelic": "^1.29.0",
     "rimraf": "^2.4.3",
