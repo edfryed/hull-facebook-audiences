@@ -8,7 +8,7 @@ import FacebookAudience from "./lib/facebook-audience";
 import adminHandler from "./handlers/admin";
 
 export default function server(app: express, dependencies: Object): express {
-  const { connector, facebookAppId, facebookAppSecret } = dependencies;
+  const { facebookAppId, facebookAppSecret } = dependencies;
 
   app.use("/notify", notifHandler({
     userHandlerOptions: {
@@ -36,7 +36,7 @@ export default function server(app: express, dependencies: Object): express {
     groupTraits: false
   }));
 
-  app.use("/admin", adminHandler({ connector, facebookAppSecret, facebookAppId }));
+  app.use("/admin", adminHandler({ facebookAppSecret, facebookAppId }));
 
   return app;
 }

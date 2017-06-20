@@ -29,7 +29,6 @@ const app = express();
 connector.setupApp(app);
 
 server(app, {
-  connector,
   facebookAppId: process.env.FACEBOOK_APP_ID,
   facebookAppSecret: process.env.FACEBOOK_APP_SECRET,
 });
