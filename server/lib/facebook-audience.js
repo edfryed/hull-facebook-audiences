@@ -297,7 +297,7 @@ export default class FacebookAudience {
         let error;
         if (err) {
           this.metric.increment("ship.errors", 1);
-          this.client.logger.error("facebook.api.unauthorized", { method, fullpath, fullparams, err });
+          this.client.logger.error("facebook.api.unauthorized", { method, fullpath, fullparams, errors: err });
           error = {
             ...err,
             fullpath, fullparams, accountId
