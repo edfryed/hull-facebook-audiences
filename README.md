@@ -31,5 +31,5 @@ gulp
 
 ### Logs :
   
-  These log messages are specific for Facebook Audiences Connector:
-    - facebook.api.unauthorized - logged when call to facebook developer's API was unauthorized
+These log messages are specific for Facebook Audiences Connector:
+  - facebook.api.unauthorized - logged when call to facebook developer's API was unauthorized
