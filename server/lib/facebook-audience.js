@@ -268,9 +268,9 @@ export default class FacebookAudience {
         _.map(users, (u) => {
           this.client.asUser(_.pick(u, "id", "external_id", "email")).logger.info("outgoing.user.success");
         });
-      }, (errors) => {
+      }, (error) => {
         _.map(users, (u) => {
-          this.client.asUser(_.pick(u, "id", "external_id", "email")).logger.info("outgoing.user.error", { errors });
+          this.client.asUser(_.pick(u, "id", "external_id", "email")).logger.info("outgoing.user.error", { errors: error });
         });
       });
   }
