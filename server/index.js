@@ -23,7 +23,14 @@ if (process.env.CACHE_REDIS_URL) {
 const port = process.env.PORT || 8082;
 const hostSecret = process.env.SECRET;
 
-const connector = new Hull.Connector({ port, hostSecret, cache });
+const connector = new Hull.Connector({
+  port,
+  hostSecret,
+  cache,
+  clientConfig: {
+    firehoseUrl: process.env.OVERRIDE_FIREHOSE_URL
+  }
+});
 
 const app = express();
 connector.setupApp(app);

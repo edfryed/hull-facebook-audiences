@@ -28,3 +28,8 @@ gulp
 - create sandbox ad: https://developers.facebook.com/ads/blog/post/2016/10/19/sandbox-ad-accounts/
 
 ```
+
+### Logs :
+  
+These log messages are specific for Facebook Audiences Connector:
+  - facebook.api.unauthorized - logged when call to facebook developer's API was unauthorized

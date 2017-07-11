@@ -7,9 +7,8 @@ import countryData from "country-data";
  */
 export default class CustomAudiences {
 
-  constructor(ship, logger) {
+  constructor(ship) {
     this.ship = ship;
-    this.logger = logger;
     /**
      * Defines relations between possible Facebook audiences and manifest settings
      * @see  https://developers.facebook.com/docs/marketing-api/custom-audience-api/v2.8#hash

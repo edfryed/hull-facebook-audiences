@@ -70,11 +70,12 @@ export default class FacebookAudience {
     const filteredMessages = messages.reduce((acc, message) => {
       const { user, changes } = message;
       // Ignore if no changes on users' segments
+      const asUser = client.asUser(_.pick(user, "id", "external_id", "email"));
+
       if (!user.email || !changes || _.isEmpty(changes.segments)) {
-        client.logger.info("outgoing.user.skip", _.merge(
-          _.pick(user, "id", "external_id", "email"),
-          { reason: "no changes on users segments" }
-        ));
+        asUser.logger.info("outgoing.user.skip", {
+          reason: "no changes on users segments"
+        });
         return acc;
       }
 
@@ -85,10 +86,9 @@ export default class FacebookAudience {
       };
 
       if (!agent.isConfigured()) {
-        client.logger.info("outgoing.user.skip", _.merge(
-          _.pick(user, "id", "external_id", "email"),
-          { reason: "connector is not configured" }
-        ));
+        asUser.logger.info("outgoing.user.skip", {
+          reason: "connector is not configured" }
+        );
         return acc;
       }
 
@@ -163,7 +163,7 @@ export default class FacebookAudience {
   constructor(ship, client, helpers, segments, metric) {
     this.ship = ship;
     this.client = client;
-    this.customAudiences = new CustomAudiences(ship, client.logger);
+    this.customAudiences = new CustomAudiences(ship);
     this.helpers = helpers;
     this.segments = segments;
     this.metric = metric;
@@ -243,12 +243,12 @@ export default class FacebookAudience {
   }
 
   removeUsersFromAudience(audienceId, users = []) {
-    this.client.logger.info("removeUsersFromAudience", { audienceId, users: users.map(u => u.email) });
+    this.client.logger.debug("removeUsersFromAudience", { audienceId, users: users.map(u => u.email) });
     return this.updateAudienceUsers(audienceId, users, "del");
   }
 
   addUsersToAudience(audienceId, users = []) {
-    this.client.logger.info("addUsersToAudience", { audienceId, users: users.map(u => u.email) });
+    this.client.logger.debug("addUsersToAudience", { audienceId, users: users.map(u => u.email) });
     return this.updateAudienceUsers(audienceId, users, "post");
   }
 
@@ -266,11 +266,11 @@ export default class FacebookAudience {
     return this.fb(`${audienceId}/users`, params, method)
       .then(() => {
         _.map(users, (u) => {
-          this.client.logger.info("outgoing.user.success", _.pick(u, "id", "external_id", "email"));
+          this.client.asUser(_.pick(u, "id", "external_id", "email")).logger.info("outgoing.user.success");
         });
-      }, () => {
+      }, (error) => {
         _.map(users, (u) => {
-          this.client.logger.info("outgoing.user.error", _.pick(u, "id", "external_id", "email"));
+          this.client.asUser(_.pick(u, "id", "external_id", "email")).logger.info("outgoing.user.error", { errors: error });
         });
       });
   }
@@ -297,7 +297,7 @@ export default class FacebookAudience {
         let error;
         if (err) {
           this.metric.increment("ship.errors", 1);
-          this.client.logger.error("unauthorized", { method, fullpath, fullparams, err });
+          this.client.logger.error("facebook.api.unauthorized", { method, fullpath, fullparams, errors: err });
           error = {
             ...err,
             fullpath, fullparams, accountId
