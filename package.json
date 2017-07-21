@@ -28,7 +28,7 @@
     "start:dev": "NODE_ENV=development babel-watch -L server",
     "test": "npm run test:lint && npm run test:flow && npm run test:unit",
     "test:lint": "eslint server",
-    "test:unit": "NODE_ENV=test mocha --require babel-register -R spec ./tests/*.js",
+    "test:unit": "NODE_ENV=test mocha --require babel-register -R spec ./test/unit/*.js",
     "test:flow": "flow check",
     "watch": "watch 'clear && npm run test:lint -s && npm run test:unit -s' server src",
     "postinstall": "npm run build"
