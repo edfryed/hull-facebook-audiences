@@ -1,7 +1,7 @@
 {
   "name": "hull-facebook-audiences",
   "description": "Sync Hull Segments with Facebook Custom Audiences",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "homepage": "https://github.com/hull-ships/hull-facebook-audiences",
   "license": "MIT",
   "author": {
@@ -22,15 +22,15 @@
   },
   "scripts": {
     "build": "npm run clean && npm run build:server",
-    "build:server": "./node_modules/.bin/babel server -d build",
-    "clean": "./node_modules/.bin/rimraf dist; ./node_modules/.bin/rimraf build",
+    "build:server": "babel server -d build",
+    "clean": "rimraf dist; rimraf build",
     "start": "node ./build",
     "start:dev": "NODE_ENV=development babel-watch -L server",
-    "test": "npm run test:lint && npm run test:units && npm run test:flow",
-    "test:lint": "./node_modules/.bin/eslint server",
-    "test:units": "NODE_ENV=test mocha -R spec ./tests/index",
+    "test": "npm run test:lint && npm run test:flow && npm run test:unit",
+    "test:lint": "eslint server",
+    "test:unit": "NODE_ENV=test mocha --require babel-register -R spec ./tests/*.js",
     "test:flow": "flow check",
-    "watch": "./node_modules/.bin/watch 'clear && npm run test:lint -s && npm run test:units -s' server src",
+    "watch": "watch 'clear && npm run test:lint -s && npm run test:unit -s' server src",
     "postinstall": "npm run build"
   },
   "keywords": [
