@@ -1,6 +1,6 @@
 import assert from "assert";
-import FIXTURES from "./fixtures";
-import FacebookAudience from "../server/lib/facebook-audience";
+import FIXTURES from "./support";
+import FacebookAudience from "../../server/lib/facebook-audience";
 import { spy } from "sinon";
 
 describe("FacebookAudiences.flushUserUpdates", () => {
