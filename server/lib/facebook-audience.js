@@ -270,7 +270,7 @@ export default class FacebookAudience {
         });
       }, (error) => {
         _.map(users, (u) => {
-          this.client.asUser(_.pick(u, "id", "external_id", "email")).logger.info("outgoing.user.error", { errors: error });
+          this.client.asUser(_.pick(u, "id", "external_id", "email")).logger.info("outgoing.user.error", { errors: error.message });
         });
       });
   }
@@ -294,16 +294,11 @@ export default class FacebookAudience {
 
       const fullparams = Object.assign({}, params, { access_token: accessToken });
       fbgraph[method](fullpath, fullparams, (err, result) => {
-        let error;
         if (err) {
           this.metric.increment("ship.errors", 1);
-          this.client.logger.error("facebook.api.unauthorized", { method, fullpath, fullparams, errors: err });
-          error = {
-            ...err,
-            fullpath, fullparams, accountId
-          };
+          this.client.logger.error("facebook.api.unauthorized", { method, fullpath, errors: err });
         }
-        return err ? reject(error) : resolve(result);
+        return err ? reject(err) : resolve(result);
       });
     });
   }

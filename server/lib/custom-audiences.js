@@ -63,7 +63,6 @@ export default class CustomAudiences {
         if (hull && (_.has(user, hull) || _.find(schema, fbKey))) {
           schema = _.union(schema, [fbKey]);
           let value = _.get(user, hull);
-
           if (_.isArray(value)) {
             return;
           }

@@ -37,7 +37,6 @@ export default function server(app: express, dependencies: Object): express {
       }
     }
   }));
-
   app.use("/admin", adminHandler({ facebookAppSecret, facebookAppId }));
 
   return app;
