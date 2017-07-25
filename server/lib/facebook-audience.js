@@ -69,9 +69,9 @@ export default class FacebookAudience {
     const agent = new FacebookAudience(ship, client, helpers, segments, metric);
     const filteredMessages = messages.reduce((acc, message) => {
       const { user, changes } = message;
-      // Ignore if no changes on users' segments
       const asUser = client.asUser(_.pick(user, "id", "external_id", "email"));
 
+      // Ignore if no changes on users' segments
       if (!user.email || !changes || _.isEmpty(changes.segments)) {
         asUser.logger.info("outgoing.user.skip", {
           reason: "no changes on users segments"
