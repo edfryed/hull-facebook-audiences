@@ -56,26 +56,34 @@ export default class CustomAudiences {
    */
   buildCustomAudiencePayload(users) {
     let schema = [];
-    const data = users.map((user) => {
-      const userData = [];
-      _.forEach(this.matches, (settingKey, fbKey) => {
+    users.forEach(user => {
+      _.toPairs(this.matches).forEach(([fbKey, settingKey]) => {
         const hull = this.getHullTrait(settingKey);
-        if (hull && (_.has(user, hull) || _.find(schema, fbKey))) {
+        if (hull && _.has(user, hull)) {
           schema = _.union(schema, [fbKey]);
-          let value = _.get(user, hull);
+        }
+      });
+    });
+
+    const data = users.map(user => {
+      const userData = [];
+      schema.forEach(fbKey => {
+        const hullKey = _.get(this.matches, fbKey);
+        let value = _.get(user, this.getHullTrait(hullKey));
+        if (value) {
           if (_.isArray(value)) {
             return;
           }
-
           if (this[`normalize${_.upperFirst(fbKey.toLowerCase())}`]) {
             value = this[`normalize${_.upperFirst(fbKey.toLowerCase())}`](value);
           }
+
           value = _.trim(value).toLowerCase();
           userData.push(this.hashValue(value));
-        }
+        } else userData.push("");
       });
       return userData;
-    }, []);
+    });
 
     return { schema, data };
   }
