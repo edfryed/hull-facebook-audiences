@@ -4,13 +4,15 @@ module.exports = function mocks() {
   const API_PREFIX = "https://graph.facebook.com/v2.9";
   return {
     setUpGetAudiencesNock: (fulfilled) => {
-      if (!fulfilled) return nock(API_PREFIX)
-        .get("/act_123/customaudiences")
-        .query(true)
-        .reply(200, {
-          data: [],
-          paging: {}
-        });
+      if (!fulfilled) {
+        return nock(API_PREFIX)
+          .get("/act_123/customaudiences")
+          .query(true)
+          .reply(200, {
+            data: [],
+            paging: {}
+          });
+      }
 
       return nock(API_PREFIX)
         .get("/act_123/customaudiences")
