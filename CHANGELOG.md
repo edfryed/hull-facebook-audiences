@@ -1,3 +1,7 @@
+## v0.1.2
+- upgrade to hull-node@0.12.0
+- implement logging convention
+
 ## v0.1.1
 - upgrade to hull-node@0.11.4
 
