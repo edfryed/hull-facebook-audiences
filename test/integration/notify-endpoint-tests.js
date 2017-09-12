@@ -31,6 +31,7 @@ describe("Connector for notify endpoint", function test() {
       name: "testSegment",
       id: "testsegment0testsegment1"
     }]);
+    minihull.stubApp("/api/v1/extract/user_reports").respond("ok");
 
     setTimeout(() => {
       done();
@@ -61,6 +62,7 @@ describe("Connector for notify endpoint", function test() {
             "id": "hullsegment0hullsegment1",
             "name": "Approved users",
             "type": "users_segment",
+            "query": {},
             "created_at": "2016-12-21T11:38:26Z",
             "updated_at": "2016-12-21T11:38:26Z"
           }],
@@ -68,6 +70,7 @@ describe("Connector for notify endpoint", function test() {
             "id": "testsegment0testsegment1",
             "name": "Test users",
             "type": "users_segment",
+            "query": {},
             "created_at": "2016-12-21T11:38:26Z",
             "updated_at": "2016-12-21T11:38:26Z"
           }]
