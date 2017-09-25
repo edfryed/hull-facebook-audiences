@@ -1,3 +1,6 @@
+## v0.1.3
+- fix the way we build payload
+
 ## v0.1.2
 - upgrade to hull-node@0.12.0
 - implement logging convention
