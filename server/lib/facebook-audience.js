@@ -325,6 +325,7 @@ export default class FacebookAudience {
           account.pixels = _.compact((pixels.data || []).map(px => px.name)).join(", ");
           return account;
         }).catch(err => {
+          this.client.logger.warn("admin.fetchPixels", { errors: err });
           account.pixels = [];
         });
         promises.push(pix);
@@ -333,6 +334,7 @@ export default class FacebookAudience {
           account.images = _.slice((images.data || []).map(i => i.url_128), 0, 4);
           return account;
         }).catch(err => {
+          this.client.logger.warn("admin.fetchImages", { errors: err });
           account.images = [];
         });
         promises.push(img);
