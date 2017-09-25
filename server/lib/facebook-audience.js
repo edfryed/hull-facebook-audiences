@@ -324,12 +324,18 @@ export default class FacebookAudience {
         const pix = this.fetchPixels(account.account_id).then((pixels) => {
           account.pixels = _.compact((pixels.data || []).map(px => px.name)).join(", ");
           return account;
+        }).catch(err => {
+          this.client.logger.warn("admin.fetchPixels", { errors: err });
+          account.pixels = [];
         });
         promises.push(pix);
 
         const img = this.fetchImages(account.account_id).then(images => {
           account.images = _.slice((images.data || []).map(i => i.url_128), 0, 4);
           return account;
+        }).catch(err => {
+          this.client.logger.warn("admin.fetchImages", { errors: err });
+          account.images = [];
         });
         promises.push(img);
 
