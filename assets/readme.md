@@ -1,42 +1,60 @@
-# Hull ♥ Facebook Custom Audiences
+# Hull Facebook Ad Audiences Connector
 
-Facebook Custom Audiences allows you to create ad audiences according to their email address or phone number.
+The Facebook connector allows you to proactively target your ICPs whom you have emails from.
 
-#### Facebook Custom Audience data includes:
+## Getting Started
 
-- Identities (name, email, phone number, company, location…)
-- Events (logged in, account created, subscribed…)
-- Page views (Viewed “Features” page, Viewed “Demo Request” page…)
-- Audiences (“Leads”, “New Paying Customers”, “Job Title - CEOs”)
+Go to the Connectors page of your Hull organization, click the button “Add Connector” and click “Install” on the Facebook card. After installation, stay on the “Dashboard” tab to grant the Connector access to your Facebook Ads system.
+![Getting Started Step 1](./docs/gettingstarted01.png)
 
-#### Create Facebook Custom Audiences with data from all your other tools
+You will get redirected to the login screen of Facebook. Authenticate the request on the Facebook website with your username and password for the Account that is using Facebook Ads:
+![Getting Started Step 2](./docs/gettingstarted02.png)
 
-With Hull, you can define these Ad Audiences as Hull Segments using data from other tools.
+After successful authentication you will be redirected to your Facebook connector on Hull. You are now ready to complete your setup:
+![Getting Started Step 3](./docs/gettingstarted03.png)
 
-- Identity data from Clearbit, Salesforce and Mailchimp
-- Events data from Mixpanel, Intercom and Shopify
-- Pageview data from HubSpot, Shopify and Intercom
-- Segment data from HubSpot, Mailchimp and Optimizely
+Please refer to following sections to learn how to
 
-Hull also gives you more flexibility with your data in Facebook. Combine multiple sources of data (beyond what Facebook provides) to create advanced segments (without the limits to AND and OR) and user scores using all your data.
+- [Specify users to synchronize](#Specify-users-to-synchronize)
+- [Determine the attributes to synchronize](#Determine-the-attributes-to-synchronize)
+- [Preview audience sizes](#Preview-audience-sizes)
+- [Change the ad account](#Change-the-ad-account)
 
-#### More power and control over your Facebook Custom Audiences
+## Features
 
-You won’t be constrained by Facebook’s own targeting options, or by  technical limitations:
+The Hull Facebook Connector allows your organization to synchronize Users from and to our platform. Once you have your data in Hull, you can send it to other tools to keep your entire stack in sync.
 
-- No APIs to tap into
-- No code needed
-- No import/export
-- No complexity
-- No repetitive audience creation
+The Facebook Connector supports sending users to target with ads on the Facebook platform. Users will be passed through with their segment name into Facebook. From there you’ll be able to build out your Facebook Ad campaigns just like you normally would.
 
+## Specify users to synchronize
 
-## How to use:
+Once you are connected to Facebook you’ll have the option to add segments of users to send to Facebook automatically. In the “Segments” section under the “Settings” heading you’ll be able to select all segments you want synced.
+![Whitelisted Segments](./docs/usersync01.png)
+**Important:** The Facebook Audiences Connector will only synchronize segments that you update or create after installation of the Connector. Segments prior to installation of this Connector will not be synchronized automatically.
 
-1. Give permission to the App to manage Apps by clicking "Continue with Facebook"
-2. Select the ad account to authorize
-3. All your Customer segments will be replicated to the Advertising account.
+## Determine the attributes to synchronize
 
-If you created segments before installing this Ship, they will not be sent to Facebook initially. Hull will only synchronize Segments you update or create after this ship has been installed
+The field mappings are very important to fill out as much as possible. Many of your user emails will be business emails, while most people sign up for Facebook with a personal email. Luckily, Facebook can match off of more than just email. The field mapping fields below allow you to choose any field from Hull and send it into Facebook. The more of these fields you have mapping the more likelihood you’l have to match up your users even without their personal email address on file.
+![Attributes Mapping](./docs/attributesmapping01.png)
 
-If you want to switch ad accounts, just delete this ship and create another one.
+## Preview audience sizes
+
+You can preview the potential size of your audience before syncing it to Facebook by going to the “Dashboard” tab of the connector. From there you’ll see all segments you’ve created in the Hull ecosystem and the approximate audience size you can expect Facebook to match. All segments you sync to Facebook will have [Hull] as the start of the title:
+![Preview audience sizes](./docs/previewsize01.png)
+
+Once you have selected which segments you want whitelisted Hull will do the rest for you. As soon as 1 user within the segment is updated the connector will then fetch all users within the segment and send them into Facebook.
+
+## How to use the logs
+
+If you click on the tab “Logs” within your Facebook Connector you can view the operational logs. The following list explains the various log messages available:
+
+| Message                     | Description                                                                            |
+| --------------------------- | -------------------------------------------------------------------------------------- |
+| `facebook.api.unauthorized` | Logged when the connection to the Facebook API failed.                                 |
+| `outgoing.user.error`       | Logged when an error occurred when sending the user to Facebook.                       |
+| `outgoing.user.skip`        | Logged when the user doesn’t match the criteria and is therefore not send to Facebook. |
+| `outgoing.user.success`     | Logged when the user has been successfully sent to Facebook.                           |
+
+## Change the ad account
+
+In case you need to change your linked ad account, please uninstall your current Connector and simply install a new one from the gallery.
