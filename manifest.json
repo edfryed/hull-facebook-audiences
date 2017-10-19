@@ -1,12 +1,12 @@
 {
-  "name": "Facebook Audiences",
-  "description": "Send Hull Segments to Facebook Custom audiences",
+  "name": "Facebook Ad Audiences",
+  "description": "Target your Leads with Facebook Ads",
   "tags": ["outgoing", "oneColumn"],
   "picture": "picture.png",
   "ui": false,
   "admin" : "admin",
   "readme" : "readme.md",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private_settings": [
     {
       "name" : "facebook_access_token",
