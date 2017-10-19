@@ -17,30 +17,30 @@ Please refer to following sections to learn how to
 
 - [Specify users to synchronize](#Specify-users-to-synchronize)
 - [Determine the attributes to synchronize](#Determine-the-attributes-to-synchronize)
-- [Preview audience sizes](#Preview-audience-sizes)
+- [View audience sizes](#View-audience-sizes)
 - [Change the ad account](#Change-the-ad-account)
 
 ## Features
 
-The Hull Facebook Connector allows your organization to synchronize Users from and to our platform. Once you have your data in Hull, you can send it to other tools to keep your entire stack in sync.
-
-The Facebook Connector supports sending users to target with ads on the Facebook platform. Users will be passed through with their segment name into Facebook. From there you’ll be able to build out your Facebook Ad campaigns just like you normally would.
+The Hull Facebook Connector allows your organization to synchronize Users from Hull to Facebook Ad Audiences. Hull segments will be synchronized as audiences which you can use to build out your Facebook Ad campaigns, just like you normally would.
 
 ## Specify users to synchronize
 
 Once you are connected to Facebook you’ll have the option to add segments of users to send to Facebook automatically. In the “Segments” section under the “Settings” heading you’ll be able to select all segments you want synced.
 ![Whitelisted Segments](./docs/usersync01.png)
-**Important:** The Facebook Audiences Connector will only synchronize segments that you update or create after installation of the Connector. Segments prior to installation of this Connector will not be synchronized automatically.
+**Important:** After you add a new segment to this list, go to the Dashboard tab and reload the page to perform the initial synchronization. You will see a button at the bottom of the Dashboard page that indicates that there unsynchronized segments:
+![Unsynchronized Segments](./docs/usersync02.png)
+After the initial synchronization, Hull will automatically keep your audience updated.
 
 ## Determine the attributes to synchronize
 
 The field mappings are very important to fill out as much as possible. Many of your user emails will be business emails, while most people sign up for Facebook with a personal email. Luckily, Facebook can match off of more than just email. The field mapping fields below allow you to choose any field from Hull and send it into Facebook. The more of these fields you have mapping the more likelihood you’l have to match up your users even without their personal email address on file.
 ![Attributes Mapping](./docs/attributesmapping01.png)
 
-## Preview audience sizes
+## View audience sizes
 
-You can preview the potential size of your audience before syncing it to Facebook by going to the “Dashboard” tab of the connector. From there you’ll see all segments you’ve created in the Hull ecosystem and the approximate audience size you can expect Facebook to match. All segments you sync to Facebook will have [Hull] as the start of the title:
-![Preview audience sizes](./docs/previewsize01.png)
+You can view the approximate size of any audience after syncing a segment to Facebook by going to the Dashboard tab of the connector. This allows you to see how many users do have Facebook matches. All audiences created in Facebook will start with `[Hull]` in the name:
+![View audience sizes](./docs/approximatesize01.png)
 
 Once you have selected which segments you want whitelisted Hull will do the rest for you. As soon as 1 user within the segment is updated the connector will then fetch all users within the segment and send them into Facebook.
 
