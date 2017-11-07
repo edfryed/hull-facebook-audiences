@@ -1,7 +1,7 @@
 {
   "name": "hull-facebook-audiences",
   "description": "Target your Leads with Facebook Ads",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "homepage": "https://github.com/hull-ships/hull-facebook-audiences",
   "license": "MIT",
   "author": {
@@ -53,7 +53,7 @@
     "country-data": "0.0.31",
     "express": "^4.14.0",
     "fbgraph": "^1.2.0",
-    "hull": "0.12.5",
+    "hull": "0.13.4",
     "lodash": "^4.13.1",
     "newrelic": "^1.29.0",
     "rimraf": "^2.4.3",
