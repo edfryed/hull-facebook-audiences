@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.1.5
+
+- improve error handling
+- upgrade to hull-node@0.13.4
+
 ## v0.1.4
 
 - updated documentation

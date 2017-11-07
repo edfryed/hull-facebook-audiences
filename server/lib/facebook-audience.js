@@ -135,6 +135,11 @@ export default class FacebookAudience {
           if (entered.length > 0) agent.addUsersToAudience(audience.id, entered);
           return { audience, segment, entered, left };
         }));
+      })
+      .catch((err) => {
+        _.map(messages, ({ user }) => {
+          agent.client.asUser(user).logger.error("outgoing.user.error", { error: err });
+        });
       });
   }
 
