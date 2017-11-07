@@ -280,20 +280,20 @@ export default class FacebookAudience {
     fbgraph.setVersion("2.9");
     const { accessToken, accountId } = this.getCredentials();
     if (!accessToken) {
-      throw new Error("MissingCredentials");
+      return Promise.reject(new Error("MissingCredentials"));
     }
     return new Promise((resolve, reject) => {
       let fullpath = path;
 
       if (path.match(/^customaudiences/)) {
         if (!accountId) {
-          throw new Error("MissingAccountId");
+          return reject(Error("MissingAccountId"));
         }
         fullpath = `act_${accountId}/${path}`;
       }
 
       const fullparams = Object.assign({}, params, { access_token: accessToken });
-      fbgraph[method](fullpath, fullparams, (err, result) => {
+      return fbgraph[method](fullpath, fullparams, (err, result) => {
         if (err) {
           this.metric.increment("ship.errors", 1);
           this.client.logger.error("facebook.api.unauthorized", { method, fullpath, errors: err });
