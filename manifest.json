@@ -2,6 +2,8 @@
   "name": "Facebook Ad Audiences",
   "description": "Target your Leads with Facebook Ads",
   "tags": ["outgoing", "oneColumn"],
+  "source": "facebook-audiences",
+  "logo": "logo.png",
   "picture": "picture.png",
   "ui": false,
   "admin" : "admin",
