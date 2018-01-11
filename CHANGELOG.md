@@ -1,6 +1,11 @@
 # CHANGELOG
 
 ## v0.1.5
+- upgrade FB API to v2.11
+- upgrade hull-node to 0.13.10
+- supporting tools upgrade
+
+## v0.1.5
 
 - improve error handling
 - upgrade to hull-node@0.13.4
