@@ -282,7 +282,7 @@ export default class FacebookAudience {
 
   fb(path, params = {}, method = "get") {
     this.metric.increment("ship.service_api.call", 1);
-    fbgraph.setVersion("2.9");
+    fbgraph.setVersion("2.11");
     const { accessToken, accountId } = this.getCredentials();
     if (!accessToken) {
       return Promise.reject(new Error("MissingCredentials"));
