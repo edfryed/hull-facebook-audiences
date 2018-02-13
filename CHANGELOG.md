@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v0.1.8
+- fix newrelic instrumentation
+
 ## v0.1.7
 - don't skip users without emails
 - fix segment:update handler

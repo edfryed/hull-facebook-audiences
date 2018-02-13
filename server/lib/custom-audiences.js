@@ -15,14 +15,14 @@ export default class CustomAudiences {
      * @type {Object}
      */
     this.matches = {
-      "EMAIL": "field_email",
-      "FN": "field_first_name",
-      "LN": "field_last_name",
-      "PHONE": "field_phone",
-      "GEN": "field_gender",
-      "ST": "field_state",
-      "CT": "field_city",
-      "COUNTRY": "field_country",
+      EMAIL: "field_email",
+      FN: "field_first_name",
+      LN: "field_last_name",
+      PHONE: "field_phone",
+      GEN: "field_gender",
+      ST: "field_state",
+      CT: "field_city",
+      COUNTRY: "field_country",
     };
   }
 
