@@ -46,7 +46,7 @@ export default class FacebookAudience {
    * @return {Promise}
    */
   static handle(method) {
-    return ({ client, ship, helpers, segments, metric }, { message }) => {
+    return ({ client, ship, helpers, segments, metric }, message) => {
       const handler = new FacebookAudience(ship, client, helpers, segments, metric);
       if (!handler.isConfigured()) {
         const error = new Error("Missing credentials");
@@ -72,7 +72,7 @@ export default class FacebookAudience {
       const asUser = client.asUser(_.pick(user, "id", "external_id", "email"));
 
       // Ignore if no changes on users' segments
-      if (!user.email || !changes || _.isEmpty(changes.segments)) {
+      if (!changes || _.isEmpty(changes.segments)) {
         asUser.logger.info("outgoing.user.skip", {
           reason: "no changes on users segments"
         });

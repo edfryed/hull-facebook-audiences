@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## v0.1.5
+## v0.1.7
+- don't skip users without emails
+- fix segment:update handler
+
+## v0.1.6
 - upgrade FB API to v2.11
 - upgrade hull-node to 0.13.10
 - supporting tools upgrade
