@@ -1,7 +1,7 @@
 {
   "name": "Facebook Ad Audiences",
   "description": "Target your Leads with Facebook Ads",
-  "tags": ["outgoing", "oneColumn"],
+  "tags": ["outgoing", "oneColumn", "smart-notifier"],
   "source": "facebook-audiences",
   "logo": "logo.png",
   "picture": "picture.png",
@@ -94,5 +94,5 @@
     }
   ],
   "resources": [],
-  "subscriptions" : [ { "url" : "/notify" } ]
+  "subscriptions": [ { "url" : "/smart-notifier" } ]
 }
