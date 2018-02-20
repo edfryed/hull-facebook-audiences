@@ -81,7 +81,7 @@ export default class FacebookAudience {
 
       // Reduce payload to keep in memory
       const payload = {
-        user: _.pick(user, agent.customAudiences.getExtractFields()),
+        user: _.pick(user, agent.customAudiences.getExtractFields(), "id", "external_id", "email"),
         changes: _.pick(changes, "segments")
       };
 
@@ -127,18 +127,32 @@ export default class FacebookAudience {
       .then(() => agent.fetchAudiences())
       .then(audiences => {
         return Promise.all(_.map(operations, ({ segment, entered, left }) => {
+          const promises = [];
           const audience = audiences[segment.id];
           if (!audience || !_.includes(agent.ship.private_settings.synchronized_segments, segment.id)) {
+            _.map(messages, ({ user }) => {
+              try {
+                agent.client.asUser(user).logger.info("outgoing.user.skip", { reason: `Segment ${segment.name} is not whitelisted` });
+              } catch (e) {} // eslint-disable-line no-empty
+            });
             return {};
           }
-          if (left.length > 0) agent.removeUsersFromAudience(audience.id, left);
-          if (entered.length > 0) agent.addUsersToAudience(audience.id, entered);
-          return { audience, segment, entered, left };
+          if (left.length > 0) {
+            promises.push(agent.removeUsersFromAudience(audience.id, left));
+          }
+          if (entered.length > 0) {
+            promises.push(agent.addUsersToAudience(audience.id, entered));
+          }
+          return Promise.all(promises).then(() => {
+            return { audience, segment, entered, left };
+          });
         }));
       })
       .catch((err) => {
         _.map(messages, ({ user }) => {
-          agent.client.asUser(user).logger.error("outgoing.user.error", { error: err });
+          try {
+            agent.client.asUser(user).logger.error("outgoing.user.error", { error: _.get(err, "message", "unknown") });
+          } catch (e) {} // eslint-disable-line no-empty
         });
       });
   }
@@ -271,7 +285,7 @@ export default class FacebookAudience {
     return this.fb(`${audienceId}/users`, params, method)
       .then(() => {
         _.map(users, (u) => {
-          this.client.asUser(_.pick(u, "id", "external_id", "email")).logger.info("outgoing.user.success");
+          this.client.asUser(_.pick(u, "id", "external_id", "email")).logger.info("outgoing.user.success", { audienceId, method });
         });
       }, (error) => {
         _.map(users, (u) => {
@@ -300,7 +314,7 @@ export default class FacebookAudience {
       const fullparams = Object.assign({}, params, { access_token: accessToken });
       return fbgraph[method](fullpath, fullparams, (err, result) => {
         if (err) {
-          this.metric.increment("ship.errors", 1);
+          this.metric.increment("connector.service_api.error", 1);
           this.client.logger.error("facebook.api.unauthorized", { method, fullpath, errors: err });
         }
         return err ? reject(err) : resolve(result);

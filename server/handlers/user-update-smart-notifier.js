@@ -1,8 +1,19 @@
+// @flow
+import type { HullReqContext, HullUserUpdateMessage } from "hull";
+
 const _ = require("lodash");
 
-const FacebookAudience = require("../lib/facebook-audience");
+const FacebookAudience = require("../lib/facebook-audience").default;
 
-function userUpdateSmartNotifier({ client, ship, helpers, segments, metric }, messages) {
+function userUpdateSmartNotifier(ctx: HullReqContext, messages: Array<HullUserUpdateMessage>): Promise<*> {
+  const { client, ship, helpers, segments, metric, smartNotifierResponse } = ctx;
+  if (smartNotifierResponse) {
+    smartNotifierResponse.setFlowControl({
+      type: "next",
+      size: 100,
+      in: 10
+    });
+  }
   const agent = new FacebookAudience(ship, client, helpers, segments, metric);
   const filteredMessages = messages.reduce((acc, message) => {
     const { user, changes } = message;
@@ -18,7 +29,7 @@ function userUpdateSmartNotifier({ client, ship, helpers, segments, metric }, me
 
     // Reduce payload to keep in memory
     const payload = {
-      user: _.pick(user, agent.customAudiences.getExtractFields()),
+      user: _.pick(user, agent.customAudiences.getExtractFields(), "id", "external_id", "email"),
       changes: _.pick(changes, "segments")
     };
 
@@ -32,7 +43,7 @@ function userUpdateSmartNotifier({ client, ship, helpers, segments, metric }, me
     return acc.concat(payload);
   }, []);
 
-  FacebookAudience.flushUserUpdates.call(this, agent, filteredMessages);
+  return FacebookAudience.flushUserUpdates(agent, filteredMessages);
 }
 
 module.exports = userUpdateSmartNotifier;

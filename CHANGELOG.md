@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.2.0
+- migrated to `/smart-notifier` endpoint
+-
+
 ## v0.1.8
 - fix newrelic instrumentation
 

@@ -1,6 +1,6 @@
 const _ = require("lodash");
 
-const FacebookAudience = require("../lib/facebook-audience");
+const FacebookAudience = require("../lib/facebook-audience").default;
 
 function segmentUpdateSmartNotifier({ client, ship, helpers, segments, metric }, messages) {
   const handler = new FacebookAudience(ship, client, helpers, segments, metric);

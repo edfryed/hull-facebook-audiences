@@ -61,7 +61,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^6.1.0",
-    "babel-watch": "^2.0.5",
+    "babel-watch": "^2.0.7",
     "eslint": "^2.13.1",
     "eslint-config-airbnb-base": "^3.0.1",
     "eslint-plugin-flowtype": "^2.44.0",
