@@ -2,10 +2,14 @@
 import express from "express";
 import Promise from "bluebird";
 
-import { notifHandler } from "hull/lib/utils";
+import { notifHandler, smartNotifierHandler } from "hull/lib/utils";
 
 import FacebookAudience from "./lib/facebook-audience";
 import adminHandler from "./handlers/admin";
+
+const userUpdateSmartNotifierHandler = require("./handlers/user-update-smart-notifier");
+const segmentUpdateSmartNotifierHandler = require("./handlers/segment-update-smart-notifier");
+const segmentDeleteSmartNotifierHandler = require("./handlers/segment-delete-smart-notifier");
 
 export default function server(app: express, dependencies: Object): express {
   const { facebookAppId, facebookAppSecret } = dependencies;
@@ -18,6 +22,14 @@ export default function server(app: express, dependencies: Object): express {
       "segment:update": FacebookAudience.handle("handleSegmentUpdate"),
       "segment:delete": FacebookAudience.handle("handleSegmentDelete"),
       "user:update": FacebookAudience.handleUserUpdate
+    }
+  }));
+
+  app.use("/smart-notifier", smartNotifierHandler({
+    handlers: {
+      "segment:update": segmentUpdateSmartNotifierHandler,
+      "segment:delete": segmentDeleteSmartNotifierHandler,
+      "user:update": userUpdateSmartNotifierHandler
     }
   }));
 

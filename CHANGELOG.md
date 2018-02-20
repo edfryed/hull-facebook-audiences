@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.2.0
+- migrated to `/smart-notifier` endpoint
+- added more logging
+- added information about missing audience size
+
 ## v0.1.8
 - fix newrelic instrumentation
 

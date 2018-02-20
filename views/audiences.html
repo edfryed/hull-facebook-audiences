@@ -2,6 +2,12 @@
   <head>
     <title>Hull Facebook Audiences</title>
     <link rel="stylesheet" href="//dd04rofzygnm0.cloudfront.net/releases/master/865f04865d2448286626bac92c518a8f8ea8bafe/stylesheets/neue.css" />
+    <style type="text/css">
+      .info {
+        border-bottom: 1px dotted #8091AD;
+        text-decoration: none;
+      }
+    </style>
   </head>
   <body class='container'>
     <div class="row">
@@ -38,12 +44,20 @@
                   </td>
                   <td  style='vertical-align: middle;'>
                     <small class="text-muted">
+                      <% if (audience.approximate_count === -1) { -%>
+                      <span class="info" title="Facebook is not reporting the estimated audience size, please check information below">Not available</span>
+                      <% } else { -%>
                       <%= audience.approximate_count %>
+                      <% } -%>
                     </small>
                   </td>
                   <td  style='vertical-align: middle;'>
                     <small class="text-muted">
+                      <% if (audience.time_content_updated === 0) { -%>
+                      <span class="info" title="It can take up to 15 minutes to get changes populate on Facebook end">Not updated yet</span>
+                      <% } else { -%>
                       <%= new Date(audience.time_content_updated * 1000) %>
+                      <% } -%>
                     </small>
                   </td>
                 </tr>
@@ -106,6 +120,13 @@
                 </div>
               <% } -%>
             <% } -%>
+        </div>
+        <div class="panel panel-default mt-1">
+          <div class="panel-body">
+            <h3 class="condensed mt-0 mb-0">Why approximate count of some audiences is not available?</h3>
+            <p>Recently created custom audiences may not show Approximate Count value in the table above.
+            This is an information fetched directly from Facebook Audiences API, the very same information is reported on the Custom Audience Details page (follow the link in the Name column above). Missing estimated size should not affect your integration flow and the same issue affects Custom Audiences created without Hull connector. To confirm that the sync is working please refer to "Audience History" section of Custom Audience Details page. You should see entries with number of rows being added and removed which should reflect number of users who enter and leave given Hull segment.</p>
+          </div>
         </div>
       </div>
     </div>
