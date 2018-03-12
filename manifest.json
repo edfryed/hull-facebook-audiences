@@ -94,5 +94,12 @@
     }
   ],
   "resources": [],
-  "subscriptions": [ { "url" : "/smart-notifier" } ]
+  "subscriptions": [ { "url" : "/smart-notifier" } ],
+  "schedules" : [
+    {
+      "url": "/status",
+      "type": "interval",
+      "value": "30"
+    }
+  ]
 }
