@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   BULK_ACCOUNT: "Can crewate up to 10,000 campaigns",
   CAN_CREATE_LOOKALIKES_WITH_CUSTOM_RATIO: "Can create custom lookalike ratios",
   CAN_USE_CONVERSION_LOOKALIKES: "Can create conversion lookalikes",

@@ -1,9 +1,9 @@
-import Promise from "bluebird";
-import _ from "lodash";
-import fbgraph from "fbgraph";
+const Promise = require("bluebird");
+const _ = require("lodash");
+const fbgraph = require("fbgraph");
 
-import CAPABILITIES from "./capabilities";
-import CustomAudiences from "./custom-audiences";
+const CAPABILITIES = require("./capabilities");
+const CustomAudiences = require("./custom-audiences");
 
 const ACCOUNT_FIELDS = [
   "id",
@@ -39,7 +39,7 @@ const AUDIENCE_FIELDS = [
   "time_updated"
 ];
 
-export default class FacebookAudience {
+class FacebookAudience {
 
   /**
    * @param  {String} method supports `handleSegmentUpdate` and `handleSegmentDelete`
@@ -383,3 +383,5 @@ export default class FacebookAudience {
   }
 
 }
+
+module.exports = FacebookAudience;

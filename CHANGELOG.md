@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.2.1
+- introduce simple `/status` endpoint
+- remove import/export
+
 ## v0.2.0
 - migrated to `/smart-notifier` endpoint
 - added more logging

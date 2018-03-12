@@ -1,11 +1,11 @@
-import crypto from "crypto";
-import _ from "lodash";
-import countryData from "country-data";
+const crypto = require("crypto");
+const _ = require("lodash");
+const countryData = require("country-data");
 
 /**
  * @see https://developers.facebook.com/docs/marketing-api/custom-audience-api/v2.8
  */
-export default class CustomAudiences {
+class CustomAudiences {
 
   constructor(ship) {
     this.ship = ship;
@@ -147,3 +147,5 @@ export default class CustomAudiences {
     return country;
   }
 }
+
+module.exports = CustomAudiences;
