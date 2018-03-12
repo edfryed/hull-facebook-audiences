@@ -1,8 +1,8 @@
 /* global describe, it, beforeEach, afterEach */
 
-import Minihull from "minihull";
-import bootstrap from "./support/bootstrap";
-import FacebookMock from "./support/facebook-mock";
+const Minihull = require("minihull");
+const bootstrap = require("./support/bootstrap");
+const FacebookMock = require("./support/facebook-mock");
 
 
 describe("Connector for notify endpoint", function test() {

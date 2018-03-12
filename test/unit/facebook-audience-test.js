@@ -1,7 +1,7 @@
-import assert from "assert";
-import FIXTURES from "./support";
-import FacebookAudience from "../../server/lib/facebook-audience";
-import { spy } from "sinon";
+const assert = require("assert");
+const FIXTURES = require("./support");
+const FacebookAudience = require("../../server/lib/facebook-audience");
+const { spy } = require("sinon");
 
 describe("FacebookAudiences.flushUserUpdates", () => {
   it("should call audience ops", (done) => {

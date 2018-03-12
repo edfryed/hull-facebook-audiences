@@ -1,4 +1,4 @@
-import nock from "nock";
+const nock = require("nock");
 
 module.exports = function mocks() {
   const API_PREFIX = "https://graph.facebook.com/v2.11";
