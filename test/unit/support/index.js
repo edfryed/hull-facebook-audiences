@@ -1,3 +1,3 @@
-const user_update = require('./user-update.json');
+const user_update = require("./user-update.json");
 
-export default { user_update };
+module.exports = { user_update };

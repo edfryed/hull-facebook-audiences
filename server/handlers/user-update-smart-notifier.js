@@ -3,7 +3,7 @@ import type { HullReqContext, HullUserUpdateMessage } from "hull";
 
 const _ = require("lodash");
 
-const FacebookAudience = require("../lib/facebook-audience").default;
+const FacebookAudience = require("../lib/facebook-audience");
 
 function userUpdateSmartNotifier(ctx: HullReqContext, messages: Array<HullUserUpdateMessage>): Promise<*> {
   const { client, ship, helpers, segments, metric, smartNotifierResponse } = ctx;

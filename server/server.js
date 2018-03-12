@@ -1,17 +1,18 @@
 // @flow
-import express from "express";
-import Promise from "bluebird";
+const express = require("express");
+const Promise = require("bluebird");
 
-import { notifHandler, smartNotifierHandler } from "hull/lib/utils";
+const { notifHandler, smartNotifierHandler } = require("hull/lib/utils");
 
-import FacebookAudience from "./lib/facebook-audience";
-import adminHandler from "./handlers/admin";
+const FacebookAudience = require("./lib/facebook-audience");
+const adminHandler = require("./handlers/admin");
+const statusHandler = require("./handlers/status");
 
 const userUpdateSmartNotifierHandler = require("./handlers/user-update-smart-notifier");
 const segmentUpdateSmartNotifierHandler = require("./handlers/segment-update-smart-notifier");
 const segmentDeleteSmartNotifierHandler = require("./handlers/segment-delete-smart-notifier");
 
-export default function server(app: express, dependencies: Object): express {
+function server(app: express, dependencies: Object): express {
   const { facebookAppId, facebookAppSecret } = dependencies;
 
   app.use("/notify", notifHandler({
@@ -51,5 +52,9 @@ export default function server(app: express, dependencies: Object): express {
   }));
   app.use("/admin", adminHandler({ facebookAppSecret, facebookAppId }));
 
+  app.all("/status", statusHandler);
+
   return app;
 }
+
+module.exports = server;

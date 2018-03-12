@@ -8,7 +8,7 @@
   "ui": false,
   "admin" : "admin",
   "readme" : "readme.md",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private_settings": [
     {
       "name" : "facebook_access_token",
@@ -94,5 +94,12 @@
     }
   ],
   "resources": [],
-  "subscriptions": [ { "url" : "/smart-notifier" } ]
+  "subscriptions": [ { "url" : "/smart-notifier" } ],
+  "schedules" : [
+    {
+      "url": "/status",
+      "type": "interval",
+      "value": "30"
+    }
+  ]
 }

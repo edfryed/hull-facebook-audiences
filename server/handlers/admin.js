@@ -1,12 +1,12 @@
 /* @flow */
-import { Router } from "express";
-import fbgraph from "fbgraph";
-import bodyParser from "body-parser";
-import FacebookAudience from "../lib/facebook-audience";
-import Promise from "bluebird";
-import _ from "lodash";
+const { Router } = require("express");
+const fbgraph = require("fbgraph");
+const bodyParser = require("body-parser");
+const FacebookAudience = require("../lib/facebook-audience");
+const Promise = require("bluebird");
+const _ = require("lodash");
 
-export default function adminHander({ facebookAppSecret, facebookAppId }: any) {
+function adminHander({ facebookAppSecret, facebookAppId }: any) {
   function getAccessToken({ facebook_access_token, extendAccessToken }) {
     return new Promise((resolve, reject) => {
       if (extendAccessToken && facebook_access_token) {
@@ -123,3 +123,6 @@ export default function adminHander({ facebookAppSecret, facebookAppId }: any) {
 
   return app;
 }
+
+
+module.exports = adminHander;
