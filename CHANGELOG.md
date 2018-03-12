@@ -3,6 +3,7 @@
 ## v0.2.1
 - introduce simple `/status` endpoint
 - remove import/export
+- other maintenance upgrades
 
 ## v0.2.0
 - migrated to `/smart-notifier` endpoint
