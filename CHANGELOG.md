@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v0.2.2
+- limit `customaudiences` request to 500 instead of 100
+
 ## v0.2.1
 - introduce simple `/status` endpoint
 - remove import/export
