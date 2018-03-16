@@ -369,7 +369,7 @@ class FacebookAudience {
     // TODO Add support for paging
     return this.fb("customaudiences", {
       fields: AUDIENCE_FIELDS.join(","),
-      limit: 100
+      limit: 500
     }).then(({ data }) => {
       return data.reduce((audiences, a) => {
         const match = a.description && a.description.match(/[a-z0-9]{24}/i);
