@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v0.2.3
+- make sure we are deduplicating segments correctly
+
 ## v0.2.2
 - limit `customaudiences` request to 500 instead of 100
 

@@ -110,7 +110,7 @@ class FacebookAudience {
     const operations = messages.reduce((ops, { user, changes }) => {
       if (changes && changes.segments) {
         const { entered, left } = changes.segments;
-        segments = _.union(segments, entered, left);
+        segments = _.unionBy(segments, entered, left, "id");
         (entered || []).forEach(segment => {
           ops[segment.id] = ops[segment.id] || { segment, entered: [], left: [] };
           ops[segment.id].entered.push(user);
