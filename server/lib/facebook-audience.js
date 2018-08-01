@@ -157,10 +157,10 @@ class FacebookAudience {
         _.map(messages, ({ user }) => {
           const logPayload = { error: _.get(err, "message", "unknown") };
           if (err.type === "OAuthException" && err.is_transient === false) {
-            logPayload.hull_summary = `${err.error_user_title} - ${err.error_user_msg}`;
+            logPayload.details = `${err.error_user_title} - ${err.error_user_msg}`;
           }
           if (err.hull_summary) {
-            logPayload.hull_summary = err.hull_summary;
+            logPayload.details = err.hull_summary;
           }
           agent.client.asUser(user).logger.error("outgoing.user.error", logPayload);
         });
