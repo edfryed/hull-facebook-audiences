@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const FacebookAudience = require("../lib/facebook-audience");
 const Promise = require("bluebird");
 const _ = require("lodash");
+const debug = require("debug")("hull-facebook-audiences");
 
 function adminHander({ facebookAppSecret, facebookAppId }: any) {
   function getAccessToken({ facebook_access_token, extendAccessToken }) {
@@ -40,7 +41,6 @@ function adminHander({ facebookAppSecret, facebookAppId }: any) {
   }
 
   function handleError(context, err = {}) {
-    console.error(err);
     if (err.type === "OAuthException" && (err.code === 100 || err.code === 190)) {
       this.render("login.html", context);
     } else {
@@ -94,7 +94,7 @@ function adminHander({ facebookAppSecret, facebookAppId }: any) {
     const { accessToken, accountId } = fb.getCredentials();
     const context = { fb, url: req.url, query: req.query, facebookAppId };
 
-
+    debug("admin.accessToken", typeof accessToken);
     if (!accessToken) {
       res.render("login.html", context);
     } else if (!accountId) {

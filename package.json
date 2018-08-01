@@ -10,9 +10,9 @@
     "url": "https://github.com/hull"
   },
   "engines": {
-    "node": "8.10.x",
+    "node": "8.11.x",
     "npm": "5.6.x",
-    "yarn": "1.5.x"
+    "yarn": "1.6.x"
   },
   "repository": {
     "type": "git",
@@ -52,9 +52,10 @@
     "bluebird": "^3.3.4",
     "cache-manager-redis-store": "^1.2.0",
     "country-data": "0.0.31",
+    "debug": "^3.1.0",
     "express": "^4.14.0",
     "fbgraph": "^1.2.0",
-    "hull": "0.13.10",
+    "hull": "^0.13.16",
     "lodash": "^4.13.1",
     "newrelic": "^2.7.1",
     "rimraf": "^2.4.3",

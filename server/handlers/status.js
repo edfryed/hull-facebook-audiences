@@ -11,8 +11,26 @@ function statusHandler(req, res) {
     messages.push("Connector is not authorized with Facebook API");
   }
 
-  res.json({ messages, status });
-  client.put(`${req.hull.ship.id}/status`, { status, messages });
+  if (
+    ship.private_settings.synchronized_segments
+    && !ship.private_settings.synchronized_segments_mapping
+  ) {
+    status = "error";
+    messages.push("Due to recent Facebook API changes, you need to migrate segments information adding `customer_file_source` information. Until you add them this connector won't be able to create new custom audiences.");
+  }
+
+  handler.fetchAudiences()
+    .then(() => {
+      // correct response
+    })
+    .catch((error) => {
+      status = "error";
+      messages.push(error.message);
+    })
+    .then(() => {
+      res.json({ messages, status });
+      client.put(`${req.hull.ship.id}/status`, { status, messages });
+    });
 }
 
 module.exports = statusHandler;

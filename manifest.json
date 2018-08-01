@@ -33,10 +33,34 @@
     {
       "name": "synchronized_segments",
       "title": "Segments",
-      "description": "Sync to Facebook these segments.",
+      "description": "Sync to Facebook these segments (deprecated, fill in table below)",
       "default": [],
       "type": "array",
       "format": "segment"
+    },
+    {
+      "name": "synchronized_segments_mapping",
+      "title": "Hull Segments to sync as FB Audiences",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "segment_id": {
+            "title": "Hull Segment",
+            "type": "string",
+            "format": "segment"
+          },
+          "customer_file_source": {
+            "title": "customer_file_source",
+            "type": "string",
+            "enum": [
+              "USER_PROVIDED_ONLY",
+              "PARTNER_PROVIDED_ONLY",
+              "BOTH_USER_AND_PARTNER_PROVIDED"
+            ]
+          }
+        }
+      }
     },
     {
       "type" : "string",
