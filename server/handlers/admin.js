@@ -71,7 +71,10 @@ function adminHander({ facebookAppSecret, facebookAppId }: any) {
           res.redirect("back");
         }
       )
-      .catch(handleError.bind(res, context));
+      .catch(error => {
+        client.logger.error("admin.error", error);
+        handleError.call(res, context, error);
+      });
   });
 
   app.post("/sync", (req, res) => {
@@ -81,7 +84,10 @@ function adminHander({ facebookAppSecret, facebookAppId }: any) {
     if (fb.isConfigured()) {
       return fb.sync().then(
         () => res.redirect("back")
-      ).catch(handleError.bind(res, context));
+      ).catch(error => {
+        client.logger.error("admin.error", error);
+        handleError.call(res, context, error);
+      });
     }
 
     return res.redirect("back");
@@ -116,7 +122,10 @@ function adminHander({ facebookAppSecret, facebookAppId }: any) {
           _
         });
       })
-      .catch(handleError.bind(res, context));
+      .catch(error => {
+        client.logger.error("admin.error", error);
+        handleError.call(res, context, error);
+      });
     }
   });
 
