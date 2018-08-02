@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v0.3.4
+- hide legacy field
+
 ## v0.3.3
 - prevent sending empty payload
 
