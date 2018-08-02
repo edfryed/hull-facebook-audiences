@@ -11,6 +11,7 @@ const statusHandler = require("./handlers/status");
 const userUpdateSmartNotifierHandler = require("./handlers/user-update-smart-notifier");
 const segmentUpdateSmartNotifierHandler = require("./handlers/segment-update-smart-notifier");
 const segmentDeleteSmartNotifierHandler = require("./handlers/segment-delete-smart-notifier");
+const triggerExtractAction = require("./handlers/trigger-extract");
 
 function server(app: express, dependencies: Object): express {
   const { facebookAppId, facebookAppSecret } = dependencies;
@@ -53,6 +54,8 @@ function server(app: express, dependencies: Object): express {
   app.use("/admin", adminHandler({ facebookAppSecret, facebookAppId }));
 
   app.all("/status", statusHandler);
+
+  app.post("/trigger-extract", triggerExtractAction);
 
   return app;
 }

@@ -201,13 +201,16 @@ class FacebookAudience {
       return { id: s };
     });
 
+console.log(">?>>>> ", this.ship.private_settings.synchronized_segments_mapping, this.ship.private_settings.synchronized_segments_mapping.length, this.ship.private_settings.synchronized_segments_mapping.filter(entry => entry.segment_id).length);
+
     if (this.ship.private_settings.synchronized_segments_mapping
-      && this.ship.private_settings.synchronized_segments_mapping.length
-      && this.ship.private_settings.synchronized_segments_mapping.filter(entry => entry.segment_id).length) {
+      && this.ship.private_settings.synchronized_segments_mapping.length > 0
+      && this.ship.private_settings.synchronized_segments_mapping.filter(entry => entry.segment_id).length > 0) {
       segmentsFromSettings = _.get(this.ship.private_settings, "synchronized_segments_mapping", []).map(entry => {
         return { id: entry.segment_id };
       });
     }
+    console.log("THIS.segments", this.segments, { segmentsFromSettings })
     return _.intersectionBy(this.segments, segmentsFromSettings, "id");
   }
 
@@ -289,7 +292,8 @@ class FacebookAudience {
    * @return {Promise}
    */
   getOrCreateAudienceForSegment(segment) {
-    const synchronizedSegmentIds = _.get(this.ship.private_settings, "synchronized_segments", []);
+    const synchronizedSegmentIds = this.getSynchronizedSegments().map(s => s.id);
+    console.log("getOrCreateAudienceForSegment", { synchronizedSegmentIds });
     if (!_.includes(synchronizedSegmentIds, segment.id)) {
       return Promise.resolve(null);
     }
@@ -427,6 +431,29 @@ class FacebookAudience {
     });
   }
 
+  triggerExtractJob(segmentId) {
+    this.client.logger.info("outgoing.job.start", { segmentId });
+    const fields = this.customAudiences.getExtractFields();
+    return this.getOrCreateAudienceForSegment({ id: segmentId })
+    .then(audience => {
+      if (audience === null) {
+        return Promise.reject(new Error("You cannot resync a segment which is not whitelisted"));
+      }
+      return this.helpers.requestExtract({
+        segment: { id: segmentId },
+        additionalQuery: {
+          audience: audience.id
+        },
+        fields
+      });
+    })
+    .then(() => {
+      this.client.logger.info("outgoing.job.success", { segmentId });
+    })
+    .catch(error => {
+      this.client.logger.error("outgoing.job.error", { error: error.message });
+    });
+  }
 }
 
 module.exports = FacebookAudience;
