@@ -10,12 +10,11 @@
     {
       "title": "Credentials & Actions",
       "url": "admin",
-      "size": "small",
       "editable": false
     }
   ],
   "readme" : "readme.md",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "private_settings": [
     {
       "name" : "facebook_access_token",
@@ -31,12 +30,50 @@
       "format":"hidden"
     },
     {
+      "name": "synchronized_segments_hero",
+      "type": "string",
+      "headerTemplate": "The field below is a legacy setup which works only for existing connectors and custom audiences. Table beneath is the current way of specifying synchronized segments.",
+      "format": "information",
+      "title": "Legacy Whitelisted Segments"
+    },
+    {
       "name": "synchronized_segments",
       "title": "Segments",
-      "description": "Sync to Facebook these segments.",
+      "description": "Sync to Facebook these segments (deprecated, fill in table below)",
       "default": [],
       "type": "array",
       "format": "segment"
+    },
+    {
+      "name": "synchronized_segments_mapping_hero",
+      "type": "string",
+      "headerTemplate": "If you have legacy field above filled in, and the table below is empty, the old filter will be applied to outgoing traffic, but you won't be able to create new custom audiences. To make this possible please move your configuration below. As soon as there is one record in the table it will be the leading setting and legacy one can be removed. This table requires you to pick `customer_file_source` value for each segment. Please refer to Facebook Ads documentation for more details.",
+      "format": "information",
+      "title": "New Whitelisted Segments"
+    },
+    {
+      "name": "synchronized_segments_mapping",
+      "title": "Hull Segments to sync as FB Audiences",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "segment_id": {
+            "title": "Hull Segment",
+            "type": "string",
+            "format": "segment"
+          },
+          "customer_file_source": {
+            "title": "customer_file_source",
+            "type": "string",
+            "enum": [
+              "USER_PROVIDED_ONLY",
+              "PARTNER_PROVIDED_ONLY",
+              "BOTH_USER_AND_PARTNER_PROVIDED"
+            ]
+          }
+        }
+      }
     },
     {
       "type" : "string",

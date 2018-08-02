@@ -1,6 +1,7 @@
 const Promise = require("bluebird");
 const _ = require("lodash");
 const fbgraph = require("fbgraph");
+const debug = require("debug")("hull-facebook-audiences");
 
 const CAPABILITIES = require("./capabilities");
 const CustomAudiences = require("./custom-audiences");
@@ -129,7 +130,13 @@ class FacebookAudience {
         return Promise.all(_.map(operations, ({ segment, entered, left }) => {
           const promises = [];
           const audience = audiences[segment.id];
-          if (!audience || !_.includes(agent.ship.private_settings.synchronized_segments, segment.id)) {
+          let segmentIds = agent.ship.private_settings.synchronized_segments;
+          if (agent.ship.private_settings.synchronized_segments_mapping
+            && agent.ship.private_settings.synchronized_segments_mapping.length
+            && agent.ship.private_settings.synchronized_segments_mapping.filter(entry => entry.segment_id).length) {
+            segmentIds = agent.ship.private_settings.synchronized_segments_mapping.map(entry => entry.segment_id);
+          }
+          if (!audience || !_.includes(segmentIds, segment.id)) {
             _.map(messages, ({ user }) => {
               try {
                 agent.client.asUser(user).logger.info("outgoing.user.skip", { reason: `Segment ${segment.name} is not whitelisted` });
@@ -150,10 +157,16 @@ class FacebookAudience {
       })
       .catch((err) => {
         _.map(messages, ({ user }) => {
-          try {
-            agent.client.asUser(user).logger.error("outgoing.user.error", { error: _.get(err, "message", "unknown") });
-          } catch (e) {} // eslint-disable-line no-empty
+          const logPayload = { error: _.get(err, "message", "unknown") };
+          if (err.type === "OAuthException" && err.is_transient === false) {
+            logPayload.details = `${err.error_user_title} - ${err.error_user_msg}`;
+          }
+          if (err.hull_summary) {
+            logPayload.details = err.hull_summary;
+          }
+          agent.client.asUser(user).logger.error("outgoing.user.error", logPayload);
         });
+        return Promise.reject(err);
       });
   }
 
@@ -173,10 +186,18 @@ class FacebookAudience {
   }
 
   getSynchronizedSegments() {
-    const segmentSetting = _.get(this.ship.private_settings, "synchronized_segments", []).map(s => {
+    let segmentsFromSettings = _.get(this.ship.private_settings, "synchronized_segments", []).map(s => {
       return { id: s };
     });
-    return _.intersectionBy(this.segments, segmentSetting, "id");
+
+    if (this.ship.private_settings.synchronized_segments_mapping
+      && this.ship.private_settings.synchronized_segments_mapping.length
+      && this.ship.private_settings.synchronized_segments_mapping.filter(entry => entry.segment_id).length) {
+      segmentsFromSettings = _.get(this.ship.private_settings, "synchronized_segments_mapping", []).map(entry => {
+        return { id: entry.segment_id };
+      });
+    }
+    return _.intersectionBy(this.segments, segmentsFromSettings, "id");
   }
 
   constructor(ship, client, helpers, segments, metric) {
@@ -214,8 +235,24 @@ class FacebookAudience {
 
   createAudience(segment, extract = true) {
     this.metric.increment("ship.audience.create", 1);
+    debug("createAudience", this.ship.private_settings);
+    if (!this.ship.private_settings || !this.ship.private_settings.synchronized_segments_mapping) {
+      const err = new Error();
+      err.hull_summary = "Missing `synchronized_segments_mapping` setting, we cannot create new custom audience. Please go to connector settings and fix it.";
+      return Promise.reject(err);
+    }
+
+    const entry = _.find(this.ship.private_settings.synchronized_segments_mapping, { segment_id: segment.id });
+
+    if (!entry || !entry.customer_file_source) {
+      const err = new Error(`Couldn't find a segments mapping entry for segment: ${segment.name}`);
+      err.hull_summary = `Couldn't find a segments mapping entry for segment: ${segment.name}. Please go to connector settings and fix it.`;
+      return Promise.reject(err);
+    }
+
     return this.fb("customaudiences", {
       subtype: "CUSTOM",
+      customer_file_source: entry.customer_file_source,
       retention_days: 180,
       description: segment.id,
       name: `[Hull] ${segment.name}`
@@ -287,16 +324,12 @@ class FacebookAudience {
         _.map(users, (u) => {
           this.client.asUser(_.pick(u, "id", "external_id", "email")).logger.info("outgoing.user.success", { audienceId, method });
         });
-      }, (error) => {
-        _.map(users, (u) => {
-          this.client.asUser(_.pick(u, "id", "external_id", "email")).logger.info("outgoing.user.error", { errors: error.message });
-        });
       });
   }
 
   fb(path, params = {}, method = "get") {
     this.metric.increment("ship.service_api.call", 1);
-    fbgraph.setVersion("2.11");
+    fbgraph.setVersion("3.1");
     const { accessToken, accountId } = this.getCredentials();
     if (!accessToken) {
       return Promise.reject(new Error("MissingCredentials"));
@@ -312,6 +345,7 @@ class FacebookAudience {
       }
 
       const fullparams = Object.assign({}, params, { access_token: accessToken });
+      debug("fbgraph %o", { method, fullpath, fullparams });
       return fbgraph[method](fullpath, fullparams, (err, result) => {
         if (err) {
           this.metric.increment("connector.service_api.error", 1);

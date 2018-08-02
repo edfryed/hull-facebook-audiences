@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v0.3.0
+
+- upgrade FB API to v3.1
+- upgrade hull-node to 0.13.16
+- add new setting `synchronized_segments_mapping`  to replace `synchronized_segments`. If new one is not provided old one will be used, but no new custom audience can be created
+- require `customer_file_source` on `synchronized_segments_mapping`
+- improve error logging
+- make the Credentials screen big
+
 ## v0.2.3
 - make sure we are deduplicating segments correctly
 

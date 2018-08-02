@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const FacebookAudience = require("../lib/facebook-audience");
 const Promise = require("bluebird");
 const _ = require("lodash");
+const debug = require("debug")("hull-facebook-audiences");
 
 function adminHander({ facebookAppSecret, facebookAppId }: any) {
   function getAccessToken({ facebook_access_token, extendAccessToken }) {
@@ -40,7 +41,6 @@ function adminHander({ facebookAppSecret, facebookAppId }: any) {
   }
 
   function handleError(context, err = {}) {
-    console.error(err);
     if (err.type === "OAuthException" && (err.code === 100 || err.code === 190)) {
       this.render("login.html", context);
     } else {
@@ -71,7 +71,10 @@ function adminHander({ facebookAppSecret, facebookAppId }: any) {
           res.redirect("back");
         }
       )
-      .catch(handleError.bind(res, context));
+      .catch(error => {
+        client.logger.error("admin.error", error);
+        handleError.call(res, context, error);
+      });
   });
 
   app.post("/sync", (req, res) => {
@@ -81,7 +84,10 @@ function adminHander({ facebookAppSecret, facebookAppId }: any) {
     if (fb.isConfigured()) {
       return fb.sync().then(
         () => res.redirect("back")
-      ).catch(handleError.bind(res, context));
+      ).catch(error => {
+        client.logger.error("admin.error", error);
+        handleError.call(res, context, error);
+      });
     }
 
     return res.redirect("back");
@@ -94,7 +100,7 @@ function adminHander({ facebookAppSecret, facebookAppId }: any) {
     const { accessToken, accountId } = fb.getCredentials();
     const context = { fb, url: req.url, query: req.query, facebookAppId };
 
-
+    debug("admin.accessToken", typeof accessToken);
     if (!accessToken) {
       res.render("login.html", context);
     } else if (!accountId) {
@@ -116,7 +122,10 @@ function adminHander({ facebookAppSecret, facebookAppId }: any) {
           _
         });
       })
-      .catch(handleError.bind(res, context));
+      .catch(error => {
+        client.logger.error("admin.error", error);
+        handleError.call(res, context, error);
+      });
     }
   });
 
