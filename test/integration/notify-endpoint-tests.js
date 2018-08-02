@@ -15,6 +15,10 @@ describe("Connector for notify endpoint", function test() {
     field_first_name: "firstName",
     field_last_name: "lastName",
     synchronized_segments: ["hullsegment0hullsegment1", "testsegment0testsegment1"],
+    synchronized_segments_mapping: [
+      { segment_id: "hullsegment0hullsegment1", customer_file_source: "USER_PROVIDED_ONLY" },
+      { segment_id: "testsegment0testsegment1", customer_file_source: "BOTH_USER_AND_PARTNER_PROVIDED" }
+    ],
     facebook_ad_account_id: "123",
     facebook_access_token: "321"
   };

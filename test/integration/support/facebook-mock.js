@@ -1,7 +1,7 @@
 const nock = require("nock");
 
 module.exports = function mocks() {
-  const API_PREFIX = "https://graph.facebook.com/v2.11";
+  const API_PREFIX = "https://graph.facebook.com/v3.1";
   return {
     setUpGetAudiencesNock: (fulfilled) => {
       if (!fulfilled) {
