@@ -42,7 +42,8 @@ describe("FacebookAudiences", () => {
           "585a69b2d5536348cf000128", "585a69b2d5536348cf000129"
         ],
         facebook_access_token: "123",
-        facebook_ad_account_id: "321"
+        facebook_ad_account_id: "321",
+        field_email: "email"
       }
     };
 

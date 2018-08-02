@@ -83,7 +83,7 @@ class CustomAudiences {
         } else userData.push("");
       });
       return userData;
-    });
+    }).filter(userData => userData.length > 0);
 
     return { schema, data };
   }

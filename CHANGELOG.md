@@ -1,7 +1,18 @@
 # CHANGELOG
 
-## v0.3.0
+## v0.3.4
+- hide legacy field
 
+## v0.3.3
+- prevent sending empty payload
+
+## v0.3.2
+- fix the status bubble up to prevent duplicates
+
+## v0.3.1
+- bubble up selected errors to connector status feed
+
+## v0.3.0
 - upgrade FB API to v3.1
 - upgrade hull-node to 0.13.16
 - add new setting `synchronized_segments_mapping`  to replace `synchronized_segments`. If new one is not provided old one will be used, but no new custom audience can be created
