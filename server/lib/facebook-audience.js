@@ -164,6 +164,11 @@ class FacebookAudience {
           if (err.hull_summary) {
             logPayload.details = err.hull_summary;
           }
+
+          if (logPayload.details && agent.ship.status.messages.indexOf(logPayload.details) === -1) {
+            agent.client.put(`${agent.ship.id}/status`, { status: "error", messages: [logPayload.details] });
+          }
+
           agent.client.asUser(user).logger.error("outgoing.user.error", logPayload);
         });
         return Promise.reject(err);
