@@ -1,7 +1,7 @@
 {
   "name": "Facebook Ad Audiences",
   "description": "Target your Leads with Facebook Ads",
-  "tags": ["outgoing", "oneColumn", "smart-notifier"],
+  "tags": ["outgoing", "smart-notifier"],
   "source": "facebook-audiences",
   "logo": "logo.png",
   "picture": "picture.png",
@@ -47,7 +47,7 @@
     {
       "name": "synchronized_segments_mapping_hero",
       "type": "string",
-      "headerTemplate": "If you have legacy field above filled in, and the table below is empty, the old filter will be applied to outgoing traffic, but you won't be able to create new custom audiences. To make this possible please move your configuration below. As soon as there is one record in the table it will be the leading setting and legacy one can be removed. This table requires you to pick `customer_file_source` value for each segment. Please refer to Facebook Ads documentation for more details.",
+      "headerTemplate": "If you have the legacy field above filled in, and the table below is empty, the old filter will be applied to outgoing traffic, but you won't be able to create new custom audiences. To make this possible please move your configuration below. As soon as there is one record in the table it will be the leading setting and legacy one can be removed. This table requires you to pick a data source value for each segment. Please refer to Facebook Ads documentation for more details.",
       "format": "information",
       "title": "New Whitelisted Segments"
     },
@@ -64,7 +64,7 @@
             "format": "segment"
           },
           "customer_file_source": {
-            "title": "customer_file_source",
+            "title": "Data Source",
             "type": "string",
             "enum": [
               "USER_PROVIDED_ONLY",
