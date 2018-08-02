@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v0.3.3
+- prevent sending empty payload
+
 ## v0.3.2
 - fix the status bubble up to prevent duplicates
 
