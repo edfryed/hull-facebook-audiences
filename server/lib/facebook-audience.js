@@ -321,7 +321,7 @@ class FacebookAudience {
 
   updateAudienceUsers(audienceId, users, method) {
     const payload = this.customAudiences.buildCustomAudiencePayload(_.compact((users || [])));
-    if (_.isEmpty(payload.data)) {
+    if (_.isEmpty(payload.data) || _.isEmpty(payload.schema)) {
       return Promise.resolve({ data: [] });
     }
 
