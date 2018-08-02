@@ -131,7 +131,9 @@ class FacebookAudience {
           const promises = [];
           const audience = audiences[segment.id];
           let segmentIds = agent.ship.private_settings.synchronized_segments;
-          if (agent.ship.private_settings.synchronized_segments_mapping) {
+          if (agent.ship.private_settings.synchronized_segments_mapping
+            && agent.ship.private_settings.synchronized_segments_mapping.length
+            && agent.ship.private_settings.synchronized_segments_mapping.filter(entry => entry.segment_id).length) {
             segmentIds = agent.ship.private_settings.synchronized_segments_mapping.map(entry => entry.segment_id);
           }
           if (!audience || !_.includes(segmentIds, segment.id)) {
@@ -184,11 +186,17 @@ class FacebookAudience {
   }
 
   getSynchronizedSegments() {
-    const segmentsFromSettings = _.get(this.ship.private_settings, "synchronized_segments_mapping", []).map(entry => {
-      return { id: entry.segment_id };
-    }) || _.get(this.ship.private_settings, "synchronized_segments", []).map(s => {
+    let segmentsFromSettings = _.get(this.ship.private_settings, "synchronized_segments", []).map(s => {
       return { id: s };
     });
+
+    if (this.ship.private_settings.synchronized_segments_mapping
+      && this.ship.private_settings.synchronized_segments_mapping.length
+      && this.ship.private_settings.synchronized_segments_mapping.filter(entry => entry.segment_id).length) {
+      segmentsFromSettings = _.get(this.ship.private_settings, "synchronized_segments_mapping", []).map(entry => {
+        return { id: entry.segment_id };
+      });
+    }
     return _.intersectionBy(this.segments, segmentsFromSettings, "id");
   }
 
