@@ -16,7 +16,7 @@ function statusHandler(req, res) {
     && !ship.private_settings.synchronized_segments_mapping
   ) {
     status = "error";
-    messages.push("Due to recent Facebook API changes, you need to migrate segments information adding `customer_file_source` information. Until you add them this connector won't be able to create new custom audiences.");
+    messages.push("Due to recent Facebook API changes, you need to migrate segments information adding `customer_file_source` information. Until you add them, this connector won't be able to create new custom audiences.");
   }
 
   handler.fetchAudiences()
