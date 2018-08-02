@@ -1,7 +1,7 @@
 {
   "name": "Facebook Ad Audiences",
   "description": "Target your Leads with Facebook Ads",
-  "tags": ["outgoing", "oneColumn", "smart-notifier"],
+  "tags": ["outgoing", "smart-notifier"],
   "source": "facebook-audiences",
   "logo": "logo.png",
   "picture": "picture.png",
@@ -40,7 +40,7 @@
     {
       "name": "synchronized_segments_mapping_hero",
       "type": "string",
-      "headerTemplate": "This table requires you to pick `customer_file_source` value for each segment. Please refer to Facebook Ads documentation for more details.",
+      "headerTemplate": "This table requires you to pick a data source value for each segment. Please refer to Facebook Ads documentation for more details.",
       "format": "information",
       "title": "New Whitelisted Segments"
     },
@@ -57,7 +57,7 @@
             "format": "segment"
           },
           "customer_file_source": {
-            "title": "customer_file_source",
+            "title": "Data Source",
             "type": "string",
             "enum": [
               "USER_PROVIDED_ONLY",
