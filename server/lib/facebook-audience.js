@@ -156,6 +156,7 @@ class FacebookAudience {
         }));
       })
       .catch((err) => {
+        const errorMessages = [];
         _.map(messages, ({ user }) => {
           const logPayload = { error: _.get(err, "message", "unknown") };
           if (err.type === "OAuthException" && err.is_transient === false) {
@@ -165,12 +166,17 @@ class FacebookAudience {
             logPayload.details = err.hull_summary;
           }
 
-          if (logPayload.details && agent.ship.status.messages.indexOf(logPayload.details) === -1) {
-            agent.client.put(`${agent.ship.id}/status`, { status: "error", messages: [logPayload.details] });
+          if (logPayload.details
+            && agent.ship.status.messages.indexOf(logPayload.details) === -1
+            && errorMessages.indexOf(logPayload.details) === -1) {
+            errorMessages.push(logPayload.details);
           }
-
           agent.client.asUser(user).logger.error("outgoing.user.error", logPayload);
         });
+
+        if (errorMessages.length > 0) {
+          agent.client.put(`${agent.ship.id}/status`, { status: "error", messages: errorMessages });
+        }
         return Promise.reject(err);
       });
   }

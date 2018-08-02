@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v0.3.2
+- fix the status bubble up to prevent duplicates
+
 ## v0.3.1
 - bubble up selected errors to connector status feed
 
