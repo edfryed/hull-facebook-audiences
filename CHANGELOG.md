@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v0.3.5
+- add a button to trigger a resync
+
 ## v0.3.4
 - hide legacy field
 
