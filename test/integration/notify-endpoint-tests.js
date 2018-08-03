@@ -23,19 +23,20 @@ describe("Connector for notify endpoint", function test() {
     facebook_access_token: "321"
   };
 
+  const connector = { id: "123456789012345678901234", private_settings };
+  const usersSegments = [{
+    name: "hullSegmentId",
+    id: "hullsegment0hullsegment1"
+  }, {
+    name: "testSegment",
+    id: "testsegment0testsegment1"
+  }];
+
   beforeEach((done) => {
     minihull = new Minihull();
     server = bootstrap();
     minihull.listen(8001);
-    minihull.stubConnector({ id: "123456789012345678901234", private_settings });
-    minihull.stubSegments([{
-      name: "hullSegmentId",
-      id: "hullsegment0hullsegment1"
-    }, {
-      name: "testSegment",
-      id: "testsegment0testsegment1"
-    }]);
-    minihull.stubApp("/api/v1/extract/user_reports").respond("ok");
+    minihull.stubUsersSegments(usersSegments);
 
     setTimeout(() => {
       done();
@@ -58,7 +59,7 @@ describe("Connector for notify endpoint", function test() {
     const createUserInAudienceNock = facebookMock.setUpCreateUserInAudienceNock("testsegment0testsegment1");
     const deleteUserInAudienceNock = facebookMock.setUpDeleteUserInAudienceNock("hullsegment0hullsegment1");
 
-    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
+    minihull.notifyConnector(connector, "http://localhost:8000/smart-notifier", "user:update", [{
       user: { email: "foo@bar.com", id: "34567", firstName: "James", lastName: "Bond" },
       changes: {
         segments: {
@@ -82,7 +83,7 @@ describe("Connector for notify endpoint", function test() {
       },
       events: [],
       segments: [{ id: "testsegment0testsegment1", name: "Test users" }]
-    }).then(() => {
+    }], usersSegments).then(() => {
       setTimeout(() => {
         createAudienceMock.done();
         createAudienceMock2.done();

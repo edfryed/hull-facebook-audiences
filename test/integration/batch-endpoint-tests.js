@@ -20,18 +20,20 @@ describe("Connector for batch endpoint", function test() {
     facebook_access_token: "321"
   };
 
+  const connector = { id: "123456789012345678901234", private_settings };
+  const usersSegments = [{
+    name: "hullSegmentId",
+    id: "hullsegment0hullsegment1"
+  }, {
+    name: "testSegment",
+    id: "testsegment0testsegment1"
+  }];
   beforeEach((done) => {
     minihull = new Minihull();
     server = bootstrap();
     minihull.listen(8001);
-    minihull.stubConnector({ id: "123456789012345678901234", private_settings });
-    minihull.stubSegments([{
-      name: "hullSegmentId",
-      id: "hullsegment0hullsegment1"
-    }, {
-      name: "testSegment",
-      id: "testsegment0testsegment1"
-    }]);
+    minihull.stubUsersSegments(usersSegments);
+    minihull.stubConnector(connector);
 
     setTimeout(() => {
       done();
@@ -56,17 +58,17 @@ describe("Connector for batch endpoint", function test() {
     "&payload[data][1][3]=15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225" +
     "&access_token=321");
 
-    minihull.stubBatch([{
+    minihull.stubUsersBatch([{
       email: "test1@email.com", id: "11111", firstName: "James", lastName: "Bond"
     }, {
       email: "test2@email.com", id: "22222", firstName: "Michael", lastName: "Kors", phone: "123456789"
     }]);
 
-    minihull.batchConnector("123456789012345678901234", "http://127.0.0.1:8000/batch?audience=testsegment0testsegment1").then(() => {
+    minihull.batchUsersConnector(connector, "http://127.0.0.1:8000/batch?audience=testsegment0testsegment1", usersSegments).then(() => {
       setTimeout(() => {
         createUsersInAudienceNock.done();
         done();
       }, 1500);
-    });
+    }).catch(err => console.log(err));
   });
 });

@@ -201,8 +201,6 @@ class FacebookAudience {
       return { id: s };
     });
 
-console.log(">?>>>> ", this.ship.private_settings.synchronized_segments_mapping, this.ship.private_settings.synchronized_segments_mapping.length, this.ship.private_settings.synchronized_segments_mapping.filter(entry => entry.segment_id).length);
-
     if (this.ship.private_settings.synchronized_segments_mapping
       && this.ship.private_settings.synchronized_segments_mapping.length > 0
       && this.ship.private_settings.synchronized_segments_mapping.filter(entry => entry.segment_id).length > 0) {
@@ -210,7 +208,7 @@ console.log(">?>>>> ", this.ship.private_settings.synchronized_segments_mapping,
         return { id: entry.segment_id };
       });
     }
-    console.log("THIS.segments", this.segments, { segmentsFromSettings })
+
     return _.intersectionBy(this.segments, segmentsFromSettings, "id");
   }
 
@@ -293,7 +291,6 @@ console.log(">?>>>> ", this.ship.private_settings.synchronized_segments_mapping,
    */
   getOrCreateAudienceForSegment(segment) {
     const synchronizedSegmentIds = this.getSynchronizedSegments().map(s => s.id);
-    console.log("getOrCreateAudienceForSegment", { synchronizedSegmentIds });
     if (!_.includes(synchronizedSegmentIds, segment.id)) {
       return Promise.resolve(null);
     }
