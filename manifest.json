@@ -40,9 +40,9 @@
     {
       "name": "synchronized_segments_mapping_hero",
       "type": "string",
-      "headerTemplate": "This table requires you to pick a data source value for each segment. Please refer to Facebook Ads documentation for more details.",
+      "headerTemplate": "Select the Segments to sync with Facebook Audiences and pick a data source value for each segment. Please refer to Facebook Ads documentation for more details.",
       "format": "information",
-      "title": "New Whitelisted Segments"
+      "title": "Whitelisted Segments"
     },
     {
       "name": "synchronized_segments_mapping",
