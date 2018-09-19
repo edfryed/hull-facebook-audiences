@@ -174,12 +174,12 @@ class FacebookAudience {
           agent.client.asUser(user).logger.error("outgoing.user.error", logPayload);
         });
 
-        if (errorMessages.length > 0) {
-          agent.client.put(`${agent.ship.id}/status`, { status: "error", messages: errorMessages });
+        if (err.error_subcode === 1870047) { // if we got `Audience Size too Low` error we do not fail the batch but continue and we do not publish status
+          return Promise.resolve();
         }
 
-        if (err.error_subcode === 1870047) { // if we got `Audience Size too Low` error we do not fail the batch but continue
-          return Promise.resolve();
+        if (errorMessages.length > 0) {
+          agent.client.put(`${agent.ship.id}/status`, { status: "error", messages: errorMessages });
         }
 
         return Promise.reject(err);
