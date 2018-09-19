@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v0.3.6
+- do not fail on `Audience Size too Low` error
+
 ## v0.3.5
 - add a button to trigger a resync
 
