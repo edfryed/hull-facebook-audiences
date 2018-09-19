@@ -177,6 +177,11 @@ class FacebookAudience {
         if (errorMessages.length > 0) {
           agent.client.put(`${agent.ship.id}/status`, { status: "error", messages: errorMessages });
         }
+
+        if (err.error_subcode === 1870047) { // if we got `Audience Size too Low` error we do not fail the batch but continue
+          return Promise.resolve();
+        }
+
         return Promise.reject(err);
       });
   }
