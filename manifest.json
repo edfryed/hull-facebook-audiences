@@ -76,7 +76,7 @@
       "description": "The fields which are sent to custom audiences to build matching."
     },
     {
-      "title": "Email Adress",
+      "title": "Email Address",
       "name" : "field_email",
       "type" : "string",
       "format" : "trait",
